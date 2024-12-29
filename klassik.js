@@ -1,6 +1,6 @@
 "use strict"
 
-const debug = true
+let debug = false
 
 const tile_width = 48
 const tile_height = 48
@@ -263,6 +263,11 @@ function action(evt) {
     case "ArrowRight":
       move("East")
       break
+    case "\\":
+      debug = !debug
+      break
+    default:
+      console.log(`Unmapped key: ${evt.key}`)
   }
 
   updateGameView()
