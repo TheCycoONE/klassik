@@ -28,7 +28,20 @@ const tiles = new Map()
 const charIcons = new Map()
 const knightChar = Symbol("knightChar")
 
-const game_grid = [];
+const VEHICLES = Object.freeze({
+  NONE: "none",
+  RAFT: "raft",
+  SHIP: "ship",
+})
+
+let game_grid_left = 0;
+let game_grid_top = 0;
+
+// DOM nodes making the game view window
+const game_grid_elements = [];
+
+// Tile definitions for the game view area
+const game_grid_tiles = [];
 
 let currentMap = worldMap
 let mapBitmap
@@ -36,6 +49,7 @@ let mapBitmap
 let playerIcon
 let playerX
 let playerY
+let playerVehicle = VEHICLES.NONE
 
 function loadImageResource(source) {
   return new Promise((resolve, reject) => {
@@ -100,14 +114,17 @@ function loadChars() {
 
 function setupGameView() {
   for (let y = 0; y < game_grid_height; y++) {
-    game_grid[y] = []
+    game_grid_elements[y] = []
+    game_grid_tiles[y] = []
     for (let x = 0; x < game_grid_width; x++) {
-      const tile = document.createElement('div')
-      tile.style.position = "relative"
-      tile.style.width = "48px"
-      tile.style.height = "48px"
-      game_grid[y].push(tile)
-      game_view.appendChild(tile)
+      const elm = document.createElement('div')
+      elm.style.position = "relative"
+      elm.style.width = "48px"
+      elm.style.height = "48px"
+
+      game_grid_elements[y].push(elm)
+      game_grid_tiles[y].push({})
+      game_view.appendChild(elm)
     }
   }
 }
@@ -133,9 +150,12 @@ function tileAt(x, y, imgData) {
 
 function updateGameView() {
   const mmCtx = mini_map_view.getContext('2d')
+
+  const mmLeft = playerX - mini_map_view.width / 2
+  const mmTop = playerY - mini_map_view.height / 2
   mmCtx.drawImage(
     mapBitmap,
-    playerX - mini_map_view.width / 2, playerY - mini_map_view.height / 2,
+    mmLeft, mmTop,
     mini_map_view.width, mini_map_view.height, 
     0, 0,
     mini_map_view.width, mini_map_view.height) 
@@ -144,16 +164,21 @@ function updateGameView() {
   const gameGridMiniMapY = mini_map_view.height / 2 - game_grid_height / 2
   const viewImgData = mmCtx.getImageData(gameGridMiniMapX, gameGridMiniMapY, game_grid_width, game_grid_height)
 
+  game_grid_left = mmLeft + gameGridMiniMapX
+  game_grid_top = mmTop + gameGridMiniMapY
+
   mmCtx.beginPath()
   mmCtx.lineWidth = "2"
   mmCtx.strokeStyle = "#eee"
   mmCtx.rect(gameGridMiniMapX, gameGridMiniMapY, game_grid_width, game_grid_height)
   mmCtx.stroke()
 
+  // Draw tiles
   for (let y = 0; y < game_grid_height; y++) {
     for (let x = 0; x < game_grid_width; x++) {
       const tile = tileAt(x, y, viewImgData)
-      game_grid[y][x].replaceChildren(tile.icon.cloneNode())
+      game_grid_tiles[y][x] = tile
+      game_grid_elements[y][x].replaceChildren(tile.icon.cloneNode())
 
       if (debug) {
         const dbgElm = document.createElement('div')
@@ -163,10 +188,13 @@ function updateGameView() {
         dbgElm.style.fontSize = "8pt"
         dbgElm.style.color = "#fff"
         dbgElm.innerHTML = "x:" + x + " y:" + y
-        game_grid[y][x].appendChild(dbgElm)
+        game_grid_elements[y][x].appendChild(dbgElm)
       }
     }
   }
+
+  // Draw player
+  game_grid_elements[playerY - game_grid_top][playerX - game_grid_left].replaceChildren(playerIcon)
 }
 
 function appendActionToLog(line) {
@@ -177,6 +205,14 @@ function appendActionToLog(line) {
     game_log_div.removeChild(game_log_div.firstElementChild)
   }
   game_log_div.scrollTop = game_log_div.scrollHeight
+}
+
+function canPass(x, y) {
+  const props = game_grid_tiles[y - game_grid_top][x - game_grid_left].properties;
+  if (playerVehicle === VEHICLES.NONE && !props.passible_on_foot) {
+    return false
+  }
+  return true
 }
 
 function move(dir) {
@@ -199,11 +235,14 @@ function move(dir) {
   }
 
   // TODO: Check passible
-  
-  appendActionToLog(`Move ${dir}: OK`)
+  if (canPass(newX, newY)) {
+    appendActionToLog(`Move ${dir}: OK`)
 
-  playerX = newX
-  playerY = newY
+    playerX = newX
+    playerY = newY
+  } else {
+    appendActionToLog(`Move ${dir}: Blocked`)
+  }
 }
 
 function action(evt) {
@@ -236,6 +275,8 @@ function afterLoad() {
 
   game_log_div.style.overflowY = "scroll"
   stats_view.appendChild(game_log_div)
+
+  playerIcon = charIcons.get(knightChar)
 
   setupGameView()
   updateGameView()
