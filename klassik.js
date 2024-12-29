@@ -7,6 +7,9 @@ const tile_height = 48
 
 const max_log_lines = 100
 
+const player_start_x = 200
+const player_start_y = 150
+
 const game_view = document.getElementById("game-view")
 const stats_view = document.getElementById("stats")
 const mini_map_view = document.getElementById("mini-map")
@@ -19,10 +22,7 @@ const game_grid_height = game_view.clientHeight / tile_height
 const worldMap = Symbol("worldMap")
 
 // Tiles
-const tileIcons = new Map()
-const grassTile = Symbol("grassTile")
-const deepWaterTile = Symbol("deepWaterTile")
-const shallowWaterTile = Symbol("shallowWaterTile")
+const tiles = new Map()
 
 // Chars
 const charIcons = new Map()
@@ -50,8 +50,18 @@ function loadImageResource(source) {
 }
 
 async function loadTile(tileDef) {
-  const img = await loadImageResource(tileDef.src)
-  tileIcons.set(tileDef.idx, img)
+  const img = await loadImageResource(`tiles/${tileDef.name}.png`)
+
+  const tile = {
+    icon: img,
+    name: tileDef.name,
+    properties: tileDef.properties
+  }
+
+  tiles.set(tileDef.index, tile)
+  if (tileDef.default) {
+    tiles.set("default", tile)
+  }
 }
 
 async function loadChar(charDef) {
@@ -64,14 +74,20 @@ async function loadMap(mapDef) {
   mapBitmap = img
 }
 
-function loadTiles() {
-  const tiles = [
-    { idx: grassTile, src: "tiles/grass.png" },
-    { idx: deepWaterTile, src: "tiles/deep_water.png" },
-    { idx: shallowWaterTile, src: "tiles/shallow_water.png" },
-  ]
+async function loadTiles() {
+  const resp = await fetch("tiles/tiles.json")
+  if (!resp.ok) {
+    throw new Error(`Failed to load tile definitions: ${resp.status}`)
+  }
 
-  return Promise.all(tiles.map(loadTile))
+  const tileDefs = await resp.json()
+
+  const loadTilePromises = []
+  for (let tileDef of tileDefs.tiles) {
+     loadTilePromises.push(loadTile(tileDef))
+  }
+    
+  await Promise.all(loadTilePromises)
 }
 
 function loadChars() {
@@ -97,22 +113,22 @@ function setupGameView() {
 }
 
 function tileAt(x, y, imgData) {
+  // rgba
   const offset = (y * imgData.width * 4) + (x * 4)
   const r = imgData.data[offset]
   const g = imgData.data[offset + 1]
   const b = imgData.data[offset + 2]
-  const a = imgData.data[offset + 3]
 
-  if (r === 0 && g === 255 && b === 0 && a === 255) {
-    return tileIcons.get(grassTile)
-  } else if (r === 0 && g === 0 && b === 255 && a === 255) {
-    return tileIcons.get(deepWaterTile)
-  } else if (r === 0 && g === 255 && b === 255 && a === 255) {
-    return tileIcons.get(shallowWaterTile)
-  } else {
-    console.log(`Unknown tile at x:${x} y:${y} with r:${r} g:${g} b:${b} a:${a}`)
-    return tileIcons.get(deepWaterTile)
+  const tileIndex = `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+
+  let tile = tiles.get(tileIndex)
+
+  if (tile === undefined) {
+    console.log(`Unknown tile at x:${x} y:${y} with index ${tileIndex}`)
+    tile = tiles.get("default")
   }
+
+  return tile
 }
 
 function updateGameView() {
@@ -123,11 +139,6 @@ function updateGameView() {
     mini_map_view.width, mini_map_view.height, 
     0, 0,
     mini_map_view.width, mini_map_view.height) 
-
-  const player_tile_y = game_grid_height / 2
-  const player_tile_x = game_grid_width / 2
-  const view_top_y = playerY - player_tile_y
-  const view_left_x = playerX - player_tile_x
 
   const gameGridMiniMapX = mini_map_view.width / 2 - game_grid_width / 2
   const gameGridMiniMapY = mini_map_view.height / 2 - game_grid_height / 2
@@ -142,7 +153,7 @@ function updateGameView() {
   for (let y = 0; y < game_grid_height; y++) {
     for (let x = 0; x < game_grid_width; x++) {
       const tile = tileAt(x, y, viewImgData)
-      game_grid[y][x].replaceChildren(tile.cloneNode())
+      game_grid[y][x].replaceChildren(tile.icon.cloneNode())
 
       if (debug) {
         const dbgElm = document.createElement('div')
@@ -219,8 +230,8 @@ function action(evt) {
 }
 
 function afterLoad() {
-  playerX = 100
-  playerY = 100
+  playerX = player_start_x
+  playerY = player_start_y
   mini_map_view.appendChild(mapBitmap)
 
   game_log_div.style.overflowY = "scroll"
