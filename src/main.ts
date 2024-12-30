@@ -1,4 +1,5 @@
 import {getElemByIdOrThrow, throwExpr} from "./util.ts"
+import tile_defs from "./tiles.json" with { type: "json" }
 
 interface CharacterDefinition {
   idx: Symbol,
@@ -125,15 +126,8 @@ async function loadMap(mapDef: MapDefinition) {
 }
 
 async function loadTiles() {
-  const resp = await fetch("tiles/tiles.json")
-  if (!resp.ok) {
-    throw new Error(`Failed to load tile definitions: ${resp.status}`)
-  }
-
-  const tileDefs = await resp.json()
-
   const loadTilePromises = []
-  for (let tileDef of tileDefs.tiles) {
+  for (let tileDef of tile_defs.tiles) {
      loadTilePromises.push(loadTile(tileDef))
   }
     
