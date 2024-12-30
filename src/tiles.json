@@ -1,7 +1,16 @@
 {
-    "tiles": [
-        { "index":"0000ff", "default":true, "name":"deep_water", "properties":{}},
-        { "index":"00ff00", "name":"grass", "properties":{"passible_on_foot":true}},
-        { "index":"00ffff", "name":"shallow_water", "properties":{}}
-    ]
+  "tiles": [
+    {
+      "index": "0000ff",
+      "default": true,
+      "name": "deep_water",
+      "properties": {}
+    },
+    {
+      "index": "00ff00",
+      "name": "grass",
+      "properties": { "passible_on_foot": true }
+    },
+    { "index": "00ffff", "name": "shallow_water", "properties": {} }
+  ]
 }

@@ -1,9 +1,11 @@
 # klassik
+
 Early development browser based RPG in the spirit of 8-bit CRPGs like Ultima and Questron.
 
 To run the game go to <a href="https://thecycoone.github.io/klassik/index.html">https://thecycoone.github.io/klassik/index.html</a>
 
 ## Rough plan
+
 - [x] World Map
 - [x] Movement
 - [ ] Save/Load Game

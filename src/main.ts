@@ -1,33 +1,32 @@
-import {getElemByIdOrThrow, throwExpr} from "./util.ts"
+import { getElemByIdOrThrow, throwExpr } from "./util.ts"
 import tile_defs from "./tiles.json" with { type: "json" }
 
 interface CharacterDefinition {
-  idx: Symbol,
+  idx: symbol
   src: string
 }
 
 interface MapDefinition {
-  idx: Symbol,
+  idx: symbol
   src: string
 }
 
 interface TileProperties {
-  passible_on_foot?: boolean,
-  passible_on_raft?: boolean,
-  passible_on_ship?: boolean,
-  [key: string]: any
+  passible_on_foot?: boolean
+  passible_on_raft?: boolean
+  passible_on_ship?: boolean
 }
 
 interface TileDefinition {
-  index: string,
-  name: string,
-  default?: boolean,
+  index: string
+  name: string
+  default?: boolean
   properties: TileProperties
 }
 
 interface Tile {
-  name: string,
-  icon: HTMLImageElement,
+  name: string
+  icon: HTMLImageElement
   properties: TileProperties
 }
 
@@ -44,7 +43,7 @@ const player_start_y = 150
 const game_view = getElemByIdOrThrow("game-view", HTMLDivElement)
 const stats_view = getElemByIdOrThrow("stats", HTMLDivElement)
 const mini_map_view = getElemByIdOrThrow("mini-map", HTMLCanvasElement)
-const game_log_div = document.createElement('div')
+const game_log_div = document.createElement("div")
 
 const game_grid_width = game_view.clientWidth / tile_width
 const game_grid_height = game_view.clientHeight / tile_height
@@ -56,7 +55,7 @@ const worldMap = Symbol("worldMap")
 const tiles: Map<string, Tile> = new Map()
 
 // Chars
-const charIcons: Map<Symbol, HTMLImageElement> = new Map()
+const charIcons: Map<symbol, HTMLImageElement> = new Map()
 const knightChar = Symbol("knightChar")
 
 const VEHICLES = Object.freeze({
@@ -69,29 +68,30 @@ enum Direction {
   North = "North",
   South = "South",
   East = "East",
-  West = "West"
+  West = "West",
 }
 
-let game_grid_left = 0;
-let game_grid_top = 0;
+let game_grid_left = 0
+let game_grid_top = 0
 
 // DOM nodes making the game view window
-const game_grid_elements: HTMLElement[][] = [];
+const game_grid_elements: HTMLElement[][] = []
 
 // Tile definitions for the game view area
-const game_grid_tiles: Tile[][] = [];
+const game_grid_tiles: Tile[][] = []
 
 let mapBitmap: HTMLImageElement | undefined
 
 let playerIcon: HTMLImageElement | undefined
 let playerX: number
 let playerY: number
-let playerVehicle = VEHICLES.NONE
+// eslint-disable-next-line prefer-const
+let playerVehicle = VEHICLES.NONE // Will be dynamic when we add more vehicles.
 
 function loadImageResource(source: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve) => {
     const img = new Image()
-    img.addEventListener('load', () => {
+    img.addEventListener("load", () => {
       console.log("Loaded: " + source)
       resolve(img)
     })
@@ -106,7 +106,7 @@ async function loadTile(tileDef: TileDefinition) {
   const tile: Tile = {
     icon: img,
     name: tileDef.name,
-    properties: tileDef.properties
+    properties: tileDef.properties,
   }
 
   tiles.set(tileDef.index, tile)
@@ -127,17 +127,15 @@ async function loadMap(mapDef: MapDefinition) {
 
 async function loadTiles() {
   const loadTilePromises = []
-  for (let tileDef of tile_defs.tiles) {
-     loadTilePromises.push(loadTile(tileDef))
+  for (const tileDef of tile_defs.tiles) {
+    loadTilePromises.push(loadTile(tileDef))
   }
-    
+
   await Promise.all(loadTilePromises)
 }
 
 function loadChars() {
-  const chars = [
-    { idx: knightChar, src: "chars/knight.png" },
-  ]
+  const chars = [{ idx: knightChar, src: "chars/knight.png" }]
 
   return Promise.all(chars.map(loadChar))
 }
@@ -147,7 +145,7 @@ function setupGameView() {
     game_grid_elements[y] = []
     game_grid_tiles[y] = []
     for (let x = 0; x < game_grid_width; x++) {
-      const elm = document.createElement('div')
+      const elm = document.createElement("div")
       elm.style.position = "relative"
       elm.style.width = "48px"
       elm.style.height = "48px"
@@ -160,12 +158,12 @@ function setupGameView() {
 
 function tileAt(x: number, y: number, imgData: ImageData): Tile {
   // rgba
-  const offset = (y * imgData.width * 4) + (x * 4)
+  const offset = y * imgData.width * 4 + x * 4
   const r = imgData.data[offset]
   const g = imgData.data[offset + 1]
   const b = imgData.data[offset + 2]
 
-  const tileIndex = `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+  const tileIndex = `${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`
 
   let tile = tiles.get(tileIndex)
 
@@ -181,7 +179,9 @@ function tileAt(x: number, y: number, imgData: ImageData): Tile {
 }
 
 function updateGameView() {
-  const mmCtx = mini_map_view.getContext('2d') ?? throwExpr("Could not get context for mini-map")
+  const mmCtx =
+    mini_map_view.getContext("2d") ??
+    throwExpr("Could not get context for mini-map")
 
   const mmLeft = playerX - mini_map_view.width / 2
   const mmTop = playerY - mini_map_view.height / 2
@@ -189,17 +189,27 @@ function updateGameView() {
   if (mapBitmap) {
     mmCtx.drawImage(
       mapBitmap,
-      mmLeft, mmTop,
-      mini_map_view.width, mini_map_view.height, 
-      0, 0,
-      mini_map_view.width, mini_map_view.height)
+      mmLeft,
+      mmTop,
+      mini_map_view.width,
+      mini_map_view.height,
+      0,
+      0,
+      mini_map_view.width,
+      mini_map_view.height,
+    )
   } else {
     console.error("Something went wrong: mapBitmap is null")
   }
 
   const gameGridMiniMapX = mini_map_view.width / 2 - game_grid_width / 2
   const gameGridMiniMapY = mini_map_view.height / 2 - game_grid_height / 2
-  const viewImgData = mmCtx.getImageData(gameGridMiniMapX, gameGridMiniMapY, game_grid_width, game_grid_height)
+  const viewImgData = mmCtx.getImageData(
+    gameGridMiniMapX,
+    gameGridMiniMapY,
+    game_grid_width,
+    game_grid_height,
+  )
 
   game_grid_left = mmLeft + gameGridMiniMapX
   game_grid_top = mmTop + gameGridMiniMapY
@@ -207,7 +217,12 @@ function updateGameView() {
   mmCtx.beginPath()
   mmCtx.lineWidth = 2
   mmCtx.strokeStyle = "#eee"
-  mmCtx.rect(gameGridMiniMapX, gameGridMiniMapY, game_grid_width, game_grid_height)
+  mmCtx.rect(
+    gameGridMiniMapX,
+    gameGridMiniMapY,
+    game_grid_width,
+    game_grid_height,
+  )
   mmCtx.stroke()
 
   // Draw tiles
@@ -218,7 +233,7 @@ function updateGameView() {
       game_grid_elements[y][x].replaceChildren(tile.icon.cloneNode())
 
       if (debug) {
-        const dbgElm = document.createElement('div')
+        const dbgElm = document.createElement("div")
         dbgElm.style.position = "absolute"
         dbgElm.style.top = "0"
         dbgElm.style.left = "0"
@@ -232,12 +247,14 @@ function updateGameView() {
 
   // Draw player
   if (playerIcon) {
-    game_grid_elements[playerY - game_grid_top][playerX - game_grid_left].replaceChildren(playerIcon)
+    game_grid_elements[playerY - game_grid_top][
+      playerX - game_grid_left
+    ].replaceChildren(playerIcon)
   }
 }
 
 function appendActionToLog(line: string) {
-  const line_div = document.createElement('div')
+  const line_div = document.createElement("div")
   line_div.appendChild(document.createTextNode(line))
   game_log_div.appendChild(line_div)
   if (game_log_div.children.length > max_log_lines) {
@@ -247,7 +264,8 @@ function appendActionToLog(line: string) {
 }
 
 function canPass(x: number, y: number) {
-  const props = game_grid_tiles[y - game_grid_top][x - game_grid_left].properties;
+  const props =
+    game_grid_tiles[y - game_grid_top][x - game_grid_left].properties
   if (playerVehicle === VEHICLES.NONE && !props.passible_on_foot) {
     return false
   }
@@ -258,7 +276,7 @@ function move(dir: Direction) {
   let newX = playerX
   let newY = playerY
 
-  switch(dir) {
+  switch (dir) {
     case Direction.North:
       newY--
       break
@@ -324,8 +342,12 @@ function afterLoad() {
   setupGameView()
   updateGameView()
 
-  document.addEventListener('keydown', action)
+  document.addEventListener("keydown", action)
 }
 
 // init
-Promise.all([loadTiles(), loadChars(), loadMap({ idx: worldMap, src: "maps/world.png" })]).then(afterLoad)
+Promise.all([
+  loadTiles(),
+  loadChars(),
+  loadMap({ idx: worldMap, src: "maps/world.png" }),
+]).then(afterLoad)
