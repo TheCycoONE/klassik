@@ -6,8 +6,8 @@
   "homepage": "https://thecycoone.github.io/klassik/",
   "scripts": {
     "dev": "vite",
-    "lint": "eslint",
-    "build": "tsc && eslint && vite build",
+    "lint": "tsc --noEmit && eslint && prettier . --check",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
