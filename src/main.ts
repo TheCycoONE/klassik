@@ -1,5 +1,14 @@
-import { getElemByIdOrThrow, throwExpr } from "./util.ts"
+import {
+  Direction,
+  Vehicle,
+  Tile,
+  TileProperties,
+  MapCoordinate,
+  Player,
+} from "./types"
+import { getElemByIdOrThrow, throwExpr } from "./util"
 import tile_defs from "./tiles.json" with { type: "json" }
+import * as SaveManager from "./save-manager"
 
 interface CharacterDefinition {
   idx: symbol
@@ -11,12 +20,6 @@ interface MapDefinition {
   src: string
 }
 
-interface TileProperties {
-  passible_on_foot?: boolean
-  passible_on_raft?: boolean
-  passible_on_ship?: boolean
-}
-
 interface TileDefinition {
   index: string
   name: string
@@ -24,10 +27,14 @@ interface TileDefinition {
   properties: TileProperties
 }
 
-interface Tile {
-  name: string
-  icon: HTMLImageElement
-  properties: TileProperties
+class GameGridCoordinate {
+  x: number
+  y: number
+
+  constructor(x: number, y: number) {
+    this.x = x
+    this.y = y
+  }
 }
 
 let debug = false
@@ -58,19 +65,6 @@ const tiles: Map<string, Tile> = new Map()
 const charIcons: Map<symbol, HTMLImageElement> = new Map()
 const knightChar = Symbol("knightChar")
 
-const VEHICLES = Object.freeze({
-  NONE: "none",
-  RAFT: "raft",
-  SHIP: "ship",
-})
-
-enum Direction {
-  North = "North",
-  South = "South",
-  East = "East",
-  West = "West",
-}
-
 let game_grid_left = 0
 let game_grid_top = 0
 
@@ -83,10 +77,8 @@ const game_grid_tiles: Tile[][] = []
 let mapBitmap: HTMLImageElement | undefined
 
 let playerIcon: HTMLImageElement | undefined
-let playerX: number
-let playerY: number
-// eslint-disable-next-line prefer-const
-let playerVehicle = VEHICLES.NONE // Will be dynamic when we add more vehicles.
+const player: Player = new Player()
+SaveManager.registerPersitable(player)
 
 function loadImageResource(source: string): Promise<HTMLImageElement> {
   return new Promise((resolve) => {
@@ -95,7 +87,6 @@ function loadImageResource(source: string): Promise<HTMLImageElement> {
       console.log("Loaded: " + source)
       resolve(img)
     })
-    //img.crossOrigin = "anonymous"
     img.src = source
   })
 }
@@ -156,9 +147,9 @@ function setupGameView() {
   }
 }
 
-function tileAt(x: number, y: number, imgData: ImageData): Tile {
+function tileAt(xy: GameGridCoordinate, imgData: ImageData): Tile {
   // rgba
-  const offset = y * imgData.width * 4 + x * 4
+  const offset = xy.y * imgData.width * 4 + xy.x * 4
   const r = imgData.data[offset]
   const g = imgData.data[offset + 1]
   const b = imgData.data[offset + 2]
@@ -168,7 +159,7 @@ function tileAt(x: number, y: number, imgData: ImageData): Tile {
   let tile = tiles.get(tileIndex)
 
   if (tile === undefined) {
-    console.log(`Unknown tile at x:${x} y:${y} with index ${tileIndex}`)
+    console.log(`Unknown tile at x:${xy.x} y:${xy.y} with index ${tileIndex}`)
     tile = tiles.get("default")
     if (tile === undefined) {
       throw new Error("default tile is not defined")
@@ -183,8 +174,8 @@ function updateGameView() {
     mini_map_view.getContext("2d") ??
     throwExpr("Could not get context for mini-map")
 
-  const mmLeft = playerX - mini_map_view.width / 2
-  const mmTop = playerY - mini_map_view.height / 2
+  const mmLeft = player.position.x - mini_map_view.width / 2
+  const mmTop = player.position.y - mini_map_view.height / 2
 
   if (mapBitmap) {
     mmCtx.drawImage(
@@ -228,7 +219,9 @@ function updateGameView() {
   // Draw tiles
   for (let y = 0; y < game_grid_height; y++) {
     for (let x = 0; x < game_grid_width; x++) {
-      const tile = tileAt(x, y, viewImgData)
+      const gridCoord = new GameGridCoordinate(x, y)
+
+      const tile = tileAt(gridCoord, viewImgData)
       game_grid_tiles[y][x] = tile
       game_grid_elements[y][x].replaceChildren(tile.icon.cloneNode())
 
@@ -247,8 +240,8 @@ function updateGameView() {
 
   // Draw player
   if (playerIcon) {
-    game_grid_elements[playerY - game_grid_top][
-      playerX - game_grid_left
+    game_grid_elements[player.position.y - game_grid_top][
+      player.position.x - game_grid_left
     ].replaceChildren(playerIcon)
   }
 }
@@ -263,40 +256,39 @@ function appendActionToLog(line: string) {
   game_log_div.scrollTop = game_log_div.scrollHeight
 }
 
-function canPass(x: number, y: number) {
+function canPass(mapCoord: MapCoordinate, withVehicle: Vehicle) {
   const props =
-    game_grid_tiles[y - game_grid_top][x - game_grid_left].properties
-  if (playerVehicle === VEHICLES.NONE && !props.passible_on_foot) {
+    game_grid_tiles[mapCoord.y - game_grid_top][mapCoord.x - game_grid_left]
+      .properties
+  if (withVehicle === Vehicle.None && !props.passible_on_foot) {
     return false
   }
   return true
 }
 
 function move(dir: Direction) {
-  let newX = playerX
-  let newY = playerY
+  const newPosition = Object.assign({}, player.position)
 
   switch (dir) {
     case Direction.North:
-      newY--
+      newPosition.y--
       break
     case Direction.South:
-      newY++
+      newPosition.y++
       break
     case Direction.West:
-      newX--
+      newPosition.x--
       break
     case Direction.East:
-      newX++
+      newPosition.x++
       break
   }
 
   // TODO: Check passible
-  if (canPass(newX, newY)) {
+  if (canPass(newPosition, player.vehicle)) {
     appendActionToLog(`Move ${dir}: OK`)
 
-    playerX = newX
-    playerY = newY
+    player.position = newPosition
   } else {
     appendActionToLog(`Move ${dir}: Blocked`)
   }
@@ -323,6 +315,17 @@ function action(evt: KeyboardEvent) {
     case "\\":
       debug = !debug
       break
+    case "s":
+      SaveManager.save()
+      appendActionToLog("Game Saved")
+      break
+    case "l":
+      if (SaveManager.load()) {
+        appendActionToLog("Loaded")
+      } else {
+        appendActionToLog("No save data available")
+      }
+      break
     default:
       console.log(`Unmapped key: ${evt.key}`)
   }
@@ -331,8 +334,7 @@ function action(evt: KeyboardEvent) {
 }
 
 function afterLoad() {
-  playerX = player_start_x
-  playerY = player_start_y
+  player.position = new MapCoordinate(player_start_x, player_start_y)
 
   game_log_div.style.overflowY = "scroll"
   stats_view.appendChild(game_log_div)

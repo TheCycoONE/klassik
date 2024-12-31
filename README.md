@@ -8,7 +8,7 @@ To run the game go to <a href="https://thecycoone.github.io/klassik/index.html">
 
 - [x] World Map
 - [x] Movement
-- [ ] Save/Load Game
+- [x] Save/Load Game
 - [ ] Vehicles (Ship, Raft, Horse?)
 - [ ] Player stats (HP, Atk, Def, etc.)
 - [ ] Intro placeholder / Character creation
