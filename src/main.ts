@@ -2,24 +2,35 @@
 
 import {
   Direction,
-  Vehicle,
+  VehicleType,
   Tile,
   TileProperties,
+  Unit,
   MapCoordinate,
   Player,
+  Vehicle,
+  MapOverlay,
+  EntityType,
 } from "./types"
 import { getElemByIdOrThrow, throwExpr } from "./util"
 import tile_defs from "./tiles.json" with { type: "json" }
+import unit_defs from "./units.json" with { type: "json" }
 import * as SaveManager from "./save-manager"
 
-interface CharacterDefinition {
-  idx: symbol
-  src: string
+interface UnitDefinition {
+  name: string
+  icons: {
+    [key in Direction]: {
+      prefix: string
+      frames?: number
+    }
+  }
 }
 
 interface MapDefinition {
-  idx: symbol
+  name: string
   src: string
+  entities: Vehicle[]
 }
 
 interface TileDefinition {
@@ -57,15 +68,9 @@ const game_log_div = document.createElement("div")
 const game_grid_width = game_view.clientWidth / tile_width
 const game_grid_height = game_view.clientHeight / tile_height
 
-// Maps
-const worldMap = Symbol("worldMap")
-
 // Tiles
 const tiles: Map<string, Tile> = new Map()
-
-// Chars
-const charIcons: Map<symbol, HTMLImageElement> = new Map()
-const knightChar = Symbol("knightChar")
+const units: Map<string, Unit> = new Map()
 
 let game_grid_left = 0
 let game_grid_top = 0
@@ -77,8 +82,8 @@ const game_grid_elements: HTMLElement[][] = []
 const game_grid_tiles: Tile[][] = []
 
 let mapBitmap: HTMLImageElement | undefined
+let mapOverlay: MapOverlay | undefined
 
-let playerIcon: HTMLImageElement | undefined
 const player: Player = new Player()
 SaveManager.registerPersitable(player)
 
@@ -108,14 +113,34 @@ async function loadTile(tileDef: TileDefinition) {
   }
 }
 
-async function loadChar(charDef: CharacterDefinition) {
-  const img = await loadImageResource(charDef.src)
-  charIcons.set(charDef.idx, img)
+async function loadUnit(unitDef: UnitDefinition) {
+  const unit: Unit = {
+    name: unitDef.name,
+    icons: {
+      [Direction.North]: [
+        await loadImageResource("units/" + unitDef.icons.North.prefix + ".png"),
+      ],
+      [Direction.East]: [
+        await loadImageResource("units/" + unitDef.icons.East.prefix + ".png"),
+      ],
+      [Direction.South]: [
+        await loadImageResource("units/" + unitDef.icons.South.prefix + ".png"),
+      ],
+      [Direction.West]: [
+        await loadImageResource("units/" + unitDef.icons.West.prefix + ".png"),
+      ],
+    },
+  }
+
+  units.set(unit.name, unit)
 }
 
 async function loadMap(mapDef: MapDefinition) {
   const img = await loadImageResource(mapDef.src)
   mapBitmap = img
+
+  mapOverlay = new MapOverlay(mapDef.name, mapDef.entities)
+  SaveManager.registerPersitable(mapOverlay)
 }
 
 async function loadTiles() {
@@ -127,10 +152,13 @@ async function loadTiles() {
   await Promise.all(loadTilePromises)
 }
 
-function loadChars() {
-  const chars = [{ idx: knightChar, src: "chars/knight.png" }]
+async function loadUnits() {
+  const loadUnitPromises = []
+  for (const unitDef of unit_defs.units) {
+    loadUnitPromises.push(loadUnit(unitDef))
+  }
 
-  return Promise.all(chars.map(loadChar))
+  await Promise.all(loadUnitPromises)
 }
 
 function setupGameView() {
@@ -234,18 +262,35 @@ function updateGameView() {
         dbgElm.style.left = "0"
         dbgElm.style.fontSize = "8pt"
         dbgElm.style.color = "#fff"
-        dbgElm.innerHTML = "x:" + x + " y:" + y
+        dbgElm.innerHTML =
+          "x:" + (game_grid_left + x) + "<br>y:" + (game_grid_top + y)
         game_grid_elements[y][x].appendChild(dbgElm)
       }
     }
   }
 
-  // Draw player
-  if (playerIcon) {
-    game_grid_elements[player.position.y - game_grid_top][
-      player.position.x - game_grid_left
-    ].replaceChildren(playerIcon)
+  // Draw entities (vehicles, monsters, npcs, etc.)
+  const gridTopLeft = new MapCoordinate(game_grid_left, game_grid_top)
+  const gridBottomRight = new MapCoordinate(
+    game_grid_left + game_grid_width - 1,
+    game_grid_top + game_grid_height - 1,
+  )
+  for (const entity of mapOverlay?.entitiesInRect(
+    gridTopLeft,
+    gridBottomRight,
+  ) ?? []) {
+    const icon = units.get(entity.unit)?.icons[entity.direction][0]
+    if (icon) {
+      game_grid_elements[entity.position.y - game_grid_top][
+        entity.position.x - game_grid_left
+      ].replaceChildren(icon)
+    }
   }
+
+  // Draw player
+  game_grid_elements[player.position.y - game_grid_top][
+    player.position.x - game_grid_left
+  ].replaceChildren(getPlayerIcon())
 }
 
 function appendActionToLog(line: string) {
@@ -258,18 +303,59 @@ function appendActionToLog(line: string) {
   game_log_div.scrollTop = game_log_div.scrollHeight
 }
 
-function canPass(mapCoord: MapCoordinate, withVehicle: Vehicle) {
+function canPass(mapCoord: MapCoordinate, withVehicle: VehicleType) {
   const props =
     game_grid_tiles[mapCoord.y - game_grid_top][mapCoord.x - game_grid_left]
       .properties
-  if (withVehicle === Vehicle.None && !props.passible_on_foot) {
+  if (withVehicle === VehicleType.None) {
+    if (props.passible_on_foot) {
+      return true
+    }
+    if (mapOverlay?.entityAt(mapCoord)?.type === EntityType.Vehicle) {
+      return true
+    }
     return false
+  } else if (withVehicle === VehicleType.Horse) {
+    return props.passible_on_horse
+  } else if (withVehicle === VehicleType.Raft) {
+    return props.passible_on_raft
+  } else if (withVehicle === VehicleType.Ship) {
+    return props.passible_on_ship
   }
   return true
 }
 
+function board() {
+  if (player.vehicle === VehicleType.None) {
+    const entity = mapOverlay?.entityAt(player.position)
+    if (!entity || entity.type !== EntityType.Vehicle) {
+      appendActionToLog("Board: Nothing here")
+      return
+    }
+
+    entity.destroyed = true
+    player.vehicle = (entity as Vehicle).vehicleType
+    appendActionToLog("Board: OK")
+  } else {
+    const ve: Vehicle = {
+      id: player.vehicle + "_" + window.crypto.randomUUID(),
+      type: EntityType.Vehicle,
+      position: new MapCoordinate(player.position.x, player.position.y),
+      direction: player.lastMoveDirection,
+      vehicleType: player.vehicle,
+      unit:
+        getVehicleUnit(player.vehicle)?.name.replace("full_", "empty_") ??
+        throwExpr(`Vehicle type ${player.vehicle} has no unit`),
+    }
+    mapOverlay?.entities.push(ve)
+    player.vehicle = VehicleType.None
+
+    appendActionToLog("Unboard")
+  }
+}
+
 function move(dir: Direction) {
-  const newPosition = Object.assign({}, player.position)
+  const newPosition = new MapCoordinate(player.position.x, player.position.y)
 
   switch (dir) {
     case Direction.North:
@@ -291,6 +377,7 @@ function move(dir: Direction) {
     appendActionToLog(`Move ${dir}: OK`)
 
     player.position = newPosition
+    player.lastMoveDirection = dir
   } else {
     appendActionToLog(`Move ${dir}: Blocked`)
   }
@@ -314,6 +401,9 @@ function action(evt: KeyboardEvent) {
     case "ArrowRight":
       move(Direction.East)
       break
+    case "b":
+      board()
+      break
     case "\\":
       debug = !debug
       break
@@ -335,13 +425,34 @@ function action(evt: KeyboardEvent) {
   updateGameView()
 }
 
+function getVehicleUnit(vehicle: VehicleType): Unit | undefined {
+  switch (vehicle) {
+    case VehicleType.None:
+      return units.get("knight")
+    case VehicleType.Raft:
+      return units.get("full_raft")
+    case VehicleType.Ship:
+      return units.get("full_ship")
+  }
+}
+
+function getPlayerIcon(): HTMLImageElement {
+  const unit: Unit | undefined = getVehicleUnit(player.vehicle)
+
+  if (unit === undefined) {
+    throw new Error(
+      `Expected player with vehicle ${player.vehicle} to have a unit`,
+    )
+  }
+
+  return unit.icons[player.lastMoveDirection][0]
+}
+
 function afterLoad() {
   player.position = new MapCoordinate(player_start_x, player_start_y)
 
   game_log_div.style.overflowY = "scroll"
   stats_view.appendChild(game_log_div)
-
-  playerIcon = charIcons.get(knightChar)
 
   setupGameView()
   updateGameView()
@@ -352,6 +463,19 @@ function afterLoad() {
 // init
 Promise.all([
   loadTiles(),
-  loadChars(),
-  loadMap({ idx: worldMap, src: "maps/world.png" }),
+  loadUnits(),
+  loadMap({
+    name: "world",
+    src: "maps/world.png",
+    entities: [
+      {
+        type: EntityType.Vehicle,
+        id: "ship_1",
+        position: new MapCoordinate(214, 150),
+        direction: Direction.West,
+        unit: "empty_ship",
+        vehicleType: VehicleType.Ship,
+      },
+    ],
+  }),
 ]).then(afterLoad)
