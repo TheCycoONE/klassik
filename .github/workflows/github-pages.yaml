@@ -1,3 +1,5 @@
+# @format
+
 # Simple workflow for deploying static content to GitHub Pages
 # Copied from https://vite.dev/guide/static-deploy with minor changes
 name: Deploy to github pages

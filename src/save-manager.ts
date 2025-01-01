@@ -1,3 +1,5 @@
+/** @format */
+
 import { Persistable } from "./types"
 
 const persistables: Persistable[] = []

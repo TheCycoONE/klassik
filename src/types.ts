@@ -1,3 +1,5 @@
+/** @format */
+
 export enum Vehicle {
   None = "none",
   Raft = "raft",

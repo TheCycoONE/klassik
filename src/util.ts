@@ -1,3 +1,5 @@
+/** @format */
+
 export function throwExpr(s: string): never {
   throw new Error(s)
 }
