@@ -114,22 +114,26 @@ async function loadTile(tileDef: TileDefinition) {
 }
 
 async function loadUnit(unitDef: UnitDefinition) {
+  // Read all direction icons asyncronously
+  const icons = Object.fromEntries(
+    await Promise.all(
+      Object.values(Direction).map(async (direction) => [
+        // entry key (Direction)
+        direction,
+
+        // entry value (HTMLImageElement[])
+        [
+          await loadImageResource(
+            `units/${unitDef.icons[direction].prefix}.png`,
+          ),
+        ],
+      ]),
+    ),
+  )
+
   const unit: Unit = {
     name: unitDef.name,
-    icons: {
-      [Direction.North]: [
-        await loadImageResource("units/" + unitDef.icons.North.prefix + ".png"),
-      ],
-      [Direction.East]: [
-        await loadImageResource("units/" + unitDef.icons.East.prefix + ".png"),
-      ],
-      [Direction.South]: [
-        await loadImageResource("units/" + unitDef.icons.South.prefix + ".png"),
-      ],
-      [Direction.West]: [
-        await loadImageResource("units/" + unitDef.icons.West.prefix + ".png"),
-      ],
-    },
+    icons,
   }
 
   units.set(unit.name, unit)
