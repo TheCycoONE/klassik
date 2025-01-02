@@ -442,6 +442,8 @@ function getVehicleUnitName(
       return inUse ? "full_raft" : "empty_raft"
     case VehicleType.Ship:
       return inUse ? "full_ship" : "empty_ship"
+    case VehicleType.Horse:
+      return inUse ? "full_horse" : "empty_horse"
   }
 }
 
@@ -494,6 +496,20 @@ Promise.all([
         position: new MapCoordinate(214, 150),
         direction: Direction.West,
         vehicleType: VehicleType.Ship,
+      },
+      {
+        type: EntityType.Vehicle,
+        id: "horse_1",
+        position: new MapCoordinate(194, 154),
+        direction: Direction.East,
+        vehicleType: VehicleType.Horse,
+      },
+      {
+        type: EntityType.Vehicle,
+        id: "raft_1",
+        position: new MapCoordinate(130, 275),
+        direction: Direction.North,
+        vehicleType: VehicleType.Raft,
       },
     ],
   }),
