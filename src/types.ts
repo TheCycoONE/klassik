@@ -58,12 +58,13 @@ export interface Persistable {
 }
 
 export class MapCoordinate {
-  x: number
-  y: number
+  constructor(
+    public x: number,
+    public y: number,
+  ) {}
 
-  constructor(x: number, y: number) {
-    this.x = x
-    this.y = y
+  clone(): MapCoordinate {
+    return new MapCoordinate(this.x, this.y)
   }
 
   equals(o: MapCoordinate): boolean {
@@ -92,11 +93,12 @@ export class Player implements Persistable {
 
 export class MapOverlay implements Persistable {
   readonly saveId: string
-  entities: MapEntity[]
 
-  constructor(mapName: string, entities: MapEntity[]) {
+  constructor(
+    mapName: string,
+    public entities: MapEntity[],
+  ) {
     this.saveId = mapName + "-mapOverlay"
-    this.entities = entities
   }
 
   entityAt(mapCoord: MapCoordinate): MapEntity | undefined {

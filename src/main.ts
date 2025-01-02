@@ -345,7 +345,7 @@ function board() {
     const ve: Vehicle = {
       id: player.vehicle + "_" + window.crypto.randomUUID(),
       type: EntityType.Vehicle,
-      position: new MapCoordinate(player.position.x, player.position.y),
+      position: player.position.clone(),
       direction: player.lastMoveDirection,
       vehicleType: player.vehicle,
     }
@@ -357,7 +357,7 @@ function board() {
 }
 
 function move(dir: Direction) {
-  const newPosition = new MapCoordinate(player.position.x, player.position.y)
+  const newPosition = player.position.clone()
 
   switch (dir) {
     case Direction.North:
