@@ -279,7 +279,12 @@ function updateGameView() {
     gridTopLeft,
     gridBottomRight,
   ) ?? []) {
-    const icon = units.get(entity.unit)?.icons[entity.direction][0]
+    let icon
+    if (entity.type === EntityType.Vehicle) {
+      icon = getVehicleUnit((entity as Vehicle).vehicleType, false)?.icons[
+        entity.direction
+      ][0]
+    }
     if (icon) {
       game_grid_elements[entity.position.y - game_grid_top][
         entity.position.x - game_grid_left
@@ -343,9 +348,6 @@ function board() {
       position: new MapCoordinate(player.position.x, player.position.y),
       direction: player.lastMoveDirection,
       vehicleType: player.vehicle,
-      unit:
-        getVehicleUnit(player.vehicle)?.name.replace("full_", "empty_") ??
-        throwExpr(`Vehicle type ${player.vehicle} has no unit`),
     }
     mapOverlay?.entities.push(ve)
     player.vehicle = VehicleType.None
@@ -425,19 +427,33 @@ function action(evt: KeyboardEvent) {
   updateGameView()
 }
 
-function getVehicleUnit(vehicle: VehicleType): Unit | undefined {
+function getVehicleUnitName(
+  vehicle: VehicleType,
+  inUse: boolean,
+): string | undefined {
   switch (vehicle) {
     case VehicleType.None:
-      return units.get("knight")
+      return "knight"
     case VehicleType.Raft:
-      return units.get("full_raft")
+      return inUse ? "full_raft" : "empty_raft"
     case VehicleType.Ship:
-      return units.get("full_ship")
+      return inUse ? "full_ship" : "empty_ship"
   }
 }
 
+function getVehicleUnit(
+  vehicle: VehicleType,
+  inUse: boolean,
+): Unit | undefined {
+  const unitName = getVehicleUnitName(vehicle, inUse)
+  if (!unitName) {
+    return
+  }
+  return units.get(unitName)
+}
+
 function getPlayerIcon(): HTMLImageElement {
-  const unit: Unit | undefined = getVehicleUnit(player.vehicle)
+  const unit: Unit | undefined = getVehicleUnit(player.vehicle, true)
 
   if (unit === undefined) {
     throw new Error(
@@ -473,7 +489,6 @@ Promise.all([
         id: "ship_1",
         position: new MapCoordinate(214, 150),
         direction: Direction.West,
-        unit: "empty_ship",
         vehicleType: VehicleType.Ship,
       },
     ],

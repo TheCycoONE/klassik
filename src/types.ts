@@ -48,7 +48,6 @@ export interface MapEntity {
   type: EntityType
   position: MapCoordinate
   destroyed?: boolean
-  unit: string
   direction: Direction
 }
 
