@@ -15,4 +15,12 @@ export default {
       ],
     }),
   ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: "index.html",
+        howToPlay: "how_to_play.html",
+      },
+    },
+  },
 } satisfies UserConfig

@@ -60,7 +60,7 @@ const max_log_lines = 100
 const player_start_x = 200
 const player_start_y = 150
 
-const game_view = getElemByIdOrThrow("game-view", HTMLDivElement)
+const map_view = getElemByIdOrThrow("map-view", HTMLDivElement)
 const side_pane = getElemByIdOrThrow("side-pane", HTMLDivElement)
 const mini_map_view = getElemByIdOrThrow("mini-map", HTMLCanvasElement)
 const game_log_div = getElemByIdOrThrow("game-log", HTMLDivElement)
@@ -74,8 +74,8 @@ const agility_span = getElemByIdOrThrow("agility", HTMLSpanElement)
 const intelligence_span = getElemByIdOrThrow("intelligence", HTMLSpanElement)
 const luck_span = getElemByIdOrThrow("luck", HTMLSpanElement)
 
-const game_grid_width = game_view.clientWidth / tile_width
-const game_grid_height = game_view.clientHeight / tile_height
+const game_grid_width = map_view.clientWidth / tile_width
+const game_grid_height = map_view.clientHeight / tile_height
 
 // Tiles
 const tiles: Map<string, Tile> = new Map()
@@ -185,7 +185,7 @@ function setupGameView() {
       elm.style.height = "48px"
 
       game_grid_elements[y].push(elm)
-      game_view.appendChild(elm)
+      map_view.appendChild(elm)
     }
   }
 }
@@ -212,7 +212,7 @@ function tileAt(xy: GameGridCoordinate, imgData: ImageData): Tile {
   return tile
 }
 
-function updateGameView() {
+function updateMapView() {
   const mmCtx =
     mini_map_view.getContext("2d") ??
     throwExpr("Could not get context for mini-map")
@@ -449,7 +449,7 @@ function action(evt: KeyboardEvent) {
       console.log(`Unmapped key: ${evt.key}`)
   }
 
-  updateGameView()
+  updateMapView()
 }
 
 function getVehicleUnitName(
@@ -499,7 +499,7 @@ function afterLoad() {
 
   setupGameView()
   updateStats()
-  updateGameView()
+  updateMapView()
 
   document.addEventListener("keydown", action)
 }

@@ -8,71 +8,38 @@
     <meta charset="utf-8" />
   </head>
   <body>
-    <div id="header">
+    <header>
       <h1>Klassik</h1>
-    </div>
-    <div id="main">
-      <div id="side-pane">
-        <div id="stats">
-          <div>HP: <span id="hp"></span></div>
-          <div>Max HP: <span id="maxHp"></span></div>
-          <div>XP: <span id="xp"></span></div>
-          <div>Lvl: <span id="level"></span></div>
-          <div>Str: <span id="strength"></span></div>
-          <div>Agi: <span id="agility"></span></div>
-          <div>Int: <span id="intelligence"></span></div>
-          <div>Lck: <span id="luck"></span></div>
+    </header>
+    <main>
+      <div id="game">
+        <div id="side-pane">
+          <div id="stats">
+            <div>HP: <span id="hp"></span></div>
+            <div>Max HP: <span id="maxHp"></span></div>
+            <div>XP: <span id="xp"></span></div>
+            <div>Lvl: <span id="level"></span></div>
+            <div>Str: <span id="strength"></span></div>
+            <div>Agi: <span id="agility"></span></div>
+            <div>Int: <span id="intelligence"></span></div>
+            <div>Lck: <span id="luck"></span></div>
+          </div>
+          <div id="game-log"></div>
         </div>
-        <div id="game-log"></div>
+        <canvas id="mini-map" width="250" height="150"></canvas>
+        <div id="map-view"></div>
       </div>
-      <canvas id="mini-map" width="250" height="150"></canvas>
-      <div id="game-view"></div>
-    </div>
-    <div id="controls">
-      <table>
-        <tr>
-          <th>Key</th>
-          <th>Action</th>
-        </tr>
-        <tr>
-          <td class="keyboard-key">↑</td>
-          <td>Move north</td>
-        </tr>
-        <tr>
-          <td class="keyboard-key">↓</td>
-          <td>Move south</td>
-        </tr>
-        <tr>
-          <td class="keyboard-key">←</td>
-          <td>Move west</td>
-        </tr>
-        <tr>
-          <td class="keyboard-key">→</td>
-          <td>Move east</td>
-        </tr>
-        <tr>
-          <td class="keyboard-key">B</td>
-          <td>Board/unboard</td>
-        </tr>
-        <tr>
-          <td class="keyboard-key">S</td>
-          <td>Save game</td>
-        </tr>
-        <tr>
-          <td class="keyboard-key">L</td>
-          <td>Load game</td>
-        </tr>
-      </table>
-    </div>
-    <div id="footer">
       <p>
-        Klassik Copyright (C) 2024 Stephen E. Baker<br />
-        This program comes with ABSOLUTELY NO WARRANTY.<br />
-        This is free software, and you are welcome to redistribute it under
-        certain conditions. Click
-        <a href="COPYING.html" target="_blank">here</a> to view the license.
+        <a href="how_to_play.html" target="_blank">How to play</a>
       </p>
-    </div>
+    </main>
+    <footer>
+      Klassik Copyright (C) 2024-2025 Stephen E. Baker<br />
+      This program comes with ABSOLUTELY NO WARRANTY.<br />
+      This is free software, and you are welcome to redistribute it under
+      certain conditions. Click
+      <a href="COPYING.html" target="_blank">here</a> to view the license.
+    </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

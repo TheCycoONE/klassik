@@ -4,17 +4,21 @@ body {
   box-sizing: border-box;
 }
 
-#header {
+header {
   text-align: center;
 }
 
-#main {
+footer {
+  margin-top: 4ex;
+}
+
+#game {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
 }
 
-#main > div {
+#game > div {
   border: 5px solid black;
 }
 
@@ -46,7 +50,7 @@ body {
   border-color: #000f;
 }
 
-#game-view {
+#map-view {
   display: grid;
   width: 672px;
   height: 480px;
@@ -55,8 +59,10 @@ body {
 }
 
 .keyboard-key {
+  font-family: sans-serif;
+  font-weight: bold;
   text-align: center;
-  background-color: #aaa;
+  background-color: #ddd;
   border-radius: 5px;
   border-color: #000;
   border-style: solid;
