@@ -73,10 +73,45 @@ export class MapCoordinate {
 }
 
 export class Player implements Persistable {
+  static readonly LVL_TABLE = [
+    { xp: 0, maxHp: 100 },
+    { xp: 100, maxHp: 110 },
+    { xp: 200, maxHp: 130 },
+    { xp: 300, maxHp: 150 },
+    { xp: 500, maxHp: 170 },
+    { xp: 800, maxHp: 200 },
+    { xp: 1300, maxHp: 250 },
+    { xp: 2000, maxHp: 300 },
+    { xp: 3300, maxHp: 500 },
+    { xp: 5400, maxHp: 800 },
+    { xp: 8800, maxHp: 999 },
+  ]
+
   readonly saveId = "player"
   position: MapCoordinate = new MapCoordinate(0, 0)
   vehicle: VehicleType = VehicleType.None
   lastMoveDirection: Direction = Direction.South
+
+  // stats
+  hp: number = 100
+  xp: number = 0
+  level: number = 1
+  strength: number = 10
+  agility: number = 10
+  intelligence: number = 10
+  luck: number = 10
+
+  get maxHp(): number {
+    return Player.LVL_TABLE[this.level - 1].maxHp
+  }
+
+  canLevelUp(): boolean {
+    if (this.level === Player.LVL_TABLE.length - 1) {
+      // max level
+      return false
+    }
+    return this.xp >= Player.LVL_TABLE[this.level + 1].xp
+  }
 
   serialize(): string {
     return JSON.stringify(this)
@@ -88,6 +123,14 @@ export class Player implements Persistable {
     this.position.y = obj.position.y
     this.lastMoveDirection = obj.lastMoveDirection
     this.vehicle = obj.vehicle
+
+    this.hp = obj.hp
+    this.xp = obj.xp
+    this.level = obj.level
+    this.strength = obj.strength
+    this.agility = obj.agility
+    this.intelligence = obj.intelligence
+    this.luck = obj.luck
   }
 }
 

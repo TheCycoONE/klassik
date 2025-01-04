@@ -61,9 +61,18 @@ const player_start_x = 200
 const player_start_y = 150
 
 const game_view = getElemByIdOrThrow("game-view", HTMLDivElement)
-const stats_view = getElemByIdOrThrow("stats", HTMLDivElement)
+const side_pane = getElemByIdOrThrow("side-pane", HTMLDivElement)
 const mini_map_view = getElemByIdOrThrow("mini-map", HTMLCanvasElement)
-const game_log_div = document.createElement("div")
+const game_log_div = getElemByIdOrThrow("game-log", HTMLDivElement)
+
+const hp_span = getElemByIdOrThrow("hp", HTMLSpanElement)
+const maxHp_span = getElemByIdOrThrow("maxHp", HTMLSpanElement)
+const xp_span = getElemByIdOrThrow("xp", HTMLSpanElement)
+const level_span = getElemByIdOrThrow("level", HTMLSpanElement)
+const strength_span = getElemByIdOrThrow("strength", HTMLSpanElement)
+const agility_span = getElemByIdOrThrow("agility", HTMLSpanElement)
+const intelligence_span = getElemByIdOrThrow("intelligence", HTMLSpanElement)
+const luck_span = getElemByIdOrThrow("luck", HTMLSpanElement)
 
 const game_grid_width = game_view.clientWidth / tile_width
 const game_grid_height = game_view.clientHeight / tile_height
@@ -302,6 +311,17 @@ function updateGameView() {
   ].replaceChildren(getPlayerIcon())
 }
 
+function updateStats() {
+  hp_span.textContent = "" + player.hp
+  maxHp_span.textContent = "" + player.maxHp
+  xp_span.textContent = "" + player.xp
+  level_span.textContent = "" + player.level
+  strength_span.textContent = "" + player.strength
+  agility_span.textContent = "" + player.agility
+  intelligence_span.textContent = "" + player.intelligence
+  luck_span.textContent = "" + player.luck
+}
+
 function appendActionToLog(line: string) {
   const line_div = document.createElement("div")
   line_div.appendChild(document.createTextNode(line))
@@ -419,6 +439,7 @@ function action(evt: KeyboardEvent) {
       break
     case "l":
       if (SaveManager.load()) {
+        updateStats()
         appendActionToLog("Loaded")
       } else {
         appendActionToLog("No save data available")
@@ -474,9 +495,10 @@ function afterLoad() {
   player.position = new MapCoordinate(player_start_x, player_start_y)
 
   game_log_div.style.overflowY = "scroll"
-  stats_view.appendChild(game_log_div)
+  side_pane.appendChild(game_log_div)
 
   setupGameView()
+  updateStats()
   updateGameView()
 
   document.addEventListener("keydown", action)

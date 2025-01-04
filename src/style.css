@@ -1,5 +1,9 @@
 /** @format */
 
+body {
+  box-sizing: border-box;
+}
+
 #header {
   text-align: center;
 }
@@ -14,13 +18,21 @@
   border: 5px solid black;
 }
 
-#stats {
+#side-pane {
   display: flex;
   flex-direction: column;
   width: 250px;
   height: 480px;
   background-color: #000f;
   color: #eee;
+}
+
+#side-pane > div {
+  padding: 10px 0;
+}
+
+#stats {
+  border-bottom: 5px solid #333;
 }
 
 #mini-map {
@@ -40,4 +52,13 @@
   height: 480px;
   grid-template-columns: repeat(auto-fill, 48px);
   gap: 0 0;
+}
+
+.keyboard-key {
+  text-align: center;
+  background-color: #aaa;
+  border-radius: 5px;
+  border-color: #000;
+  border-style: solid;
+  border-width: 1px;
 }
