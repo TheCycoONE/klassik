@@ -12,17 +12,111 @@
       <h1>Klassik</h1>
     </header>
     <main>
-      <div id="game">
+      <div id="loading">Loading...</div>
+      <div id="intro" hidden>
+        <div id="intro-page-1">
+          <button id="intro-new-game">Start a new character</button>
+          <button id="intro-load-game">Continue your quest</button>
+        </div>
+        <div id="intro-page-2" hidden>
+          <div>
+            <div>
+              <label>Name:</label
+              ><input
+                id="intro-player-name"
+                type="text"
+                required
+                value="Player"
+                maxlength="16"
+              />
+            </div>
+            <div>
+              Sex:
+              <label
+                ><input
+                  type="radio"
+                  id="intro-player-sex-m"
+                  name="intro-player-sex"
+                  checked
+                  value="m"
+                />Male</label
+              ><label
+                ><input
+                  type="radio"
+                  id=""
+                  name="intro-player-sex"
+                  value="f"
+                />Female</label
+              >
+            </div>
+            <div>
+              Remaining skill points:
+              <span id="intro-remaining-skill-points">0</span>
+            </div>
+            <div>
+              Strength:
+              <input
+                type="number"
+                id="intro-strength"
+                class="create-character-skill"
+                min="0"
+                max="20"
+                maxlength="2"
+                value="10"
+              />
+            </div>
+            <div>
+              Agility:
+              <input
+                type="number"
+                id="intro-agility"
+                class="create-character-skill"
+                min="0"
+                max="20"
+                maxlength="2"
+                value="10"
+              />
+            </div>
+            <div>
+              Intelligence:
+              <input
+                type="number"
+                id="intro-intelligence"
+                class="create-character-skill"
+                min="0"
+                max="20"
+                maxlength="2"
+                value="10"
+              />
+            </div>
+            <div>
+              Luck:
+              <input
+                type="number"
+                id="intro-luck"
+                class="create-character-skill"
+                min="0"
+                max="20"
+                maxlength="2"
+                value="10"
+              />
+            </div>
+            <button id="intro-start-game">Start Game</button>
+          </div>
+        </div>
+      </div>
+      <div id="game" hidden>
         <div id="side-pane">
           <div id="stats">
-            <div>HP: <span id="hp"></span></div>
-            <div>Max HP: <span id="maxHp"></span></div>
-            <div>XP: <span id="xp"></span></div>
-            <div>Lvl: <span id="level"></span></div>
-            <div>Str: <span id="strength"></span></div>
-            <div>Agi: <span id="agility"></span></div>
-            <div>Int: <span id="intelligence"></span></div>
-            <div>Lck: <span id="luck"></span></div>
+            <div><span id="player-name">Player</span></div>
+            <div>HP: <span id="hp">0</span></div>
+            <div>Max HP: <span id="maxHp">0</span></div>
+            <div>XP: <span id="xp">0</span></div>
+            <div>Lvl: <span id="level">1</span></div>
+            <div>Str: <span id="strength">0</span></div>
+            <div>Agi: <span id="agility">0</span></div>
+            <div>Int: <span id="intelligence">0</span></div>
+            <div>Lck: <span id="luck">0</span></div>
           </div>
           <div id="game-log"></div>
         </div>

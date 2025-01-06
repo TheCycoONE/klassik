@@ -12,8 +12,8 @@ To run the game go to <a href="https://thecycoone.github.io/klassik/index.html">
 - [x] Movement
 - [x] Save/Load Game
 - [x] Vehicles (Ship, Raft, Horse?)
-- [ ] Player stats (HP, Atk, Def, etc.)
-- [ ] Intro placeholder / Character creation
+- [x] Player stats (HP, Atk, Def, etc.)
+- [x] Intro placeholder / Character creation
 - [ ] Monsters & combat
 - [ ] Inventory / Equipment
 - [ ] Random spawn monsters (consider tile type and/or map region)

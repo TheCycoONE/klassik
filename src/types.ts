@@ -72,6 +72,11 @@ export class MapCoordinate {
   }
 }
 
+export enum Sex {
+  MALE = "m",
+  FEMALE = "f",
+}
+
 export class Player implements Persistable {
   static readonly LVL_TABLE = [
     { xp: 0, maxHp: 100 },
@@ -91,6 +96,9 @@ export class Player implements Persistable {
   position: MapCoordinate = new MapCoordinate(0, 0)
   vehicle: VehicleType = VehicleType.None
   lastMoveDirection: Direction = Direction.South
+
+  name: string = "Player"
+  sex: Sex = Sex.MALE
 
   // stats
   hp: number = 100
@@ -123,6 +131,9 @@ export class Player implements Persistable {
     this.position.y = obj.position.y
     this.lastMoveDirection = obj.lastMoveDirection
     this.vehicle = obj.vehicle
+
+    this.name = obj.name
+    this.sex = obj.sex
 
     this.hp = obj.hp
     this.xp = obj.xp

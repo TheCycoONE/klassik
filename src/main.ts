@@ -16,6 +16,7 @@ import { getElemByIdOrThrow, throwExpr } from "./util"
 import tile_defs from "./tiles.json" with { type: "json" }
 import unit_defs from "./units.json" with { type: "json" }
 import * as SaveManager from "./save-manager"
+import * as Intro from "./intro"
 
 interface UnitDefinition {
   name: string
@@ -54,17 +55,22 @@ let debug = false
 
 const tile_width = 48
 const tile_height = 48
+const map_view_width_px = 672
+const map_view_height_px = 480
 
 const max_log_lines = 100
 
 const player_start_x = 200
 const player_start_y = 150
 
+const loading_div = getElemByIdOrThrow("loading", HTMLDivElement)
+const game_div = getElemByIdOrThrow("game", HTMLDivElement)
 const map_view = getElemByIdOrThrow("map-view", HTMLDivElement)
 const side_pane = getElemByIdOrThrow("side-pane", HTMLDivElement)
 const mini_map_view = getElemByIdOrThrow("mini-map", HTMLCanvasElement)
 const game_log_div = getElemByIdOrThrow("game-log", HTMLDivElement)
 
+const player_name_span = getElemByIdOrThrow("player-name", HTMLSpanElement)
 const hp_span = getElemByIdOrThrow("hp", HTMLSpanElement)
 const maxHp_span = getElemByIdOrThrow("maxHp", HTMLSpanElement)
 const xp_span = getElemByIdOrThrow("xp", HTMLSpanElement)
@@ -74,8 +80,8 @@ const agility_span = getElemByIdOrThrow("agility", HTMLSpanElement)
 const intelligence_span = getElemByIdOrThrow("intelligence", HTMLSpanElement)
 const luck_span = getElemByIdOrThrow("luck", HTMLSpanElement)
 
-const game_grid_width = map_view.clientWidth / tile_width
-const game_grid_height = map_view.clientHeight / tile_height
+const game_grid_width = map_view_width_px / tile_width
+const game_grid_height = map_view_height_px / tile_height
 
 // Tiles
 const tiles: Map<string, Tile> = new Map()
@@ -312,6 +318,7 @@ function updateMapView() {
 }
 
 function updateStats() {
+  player_name_span.textContent = player.name
   hp_span.textContent = "" + player.hp
   maxHp_span.textContent = "" + player.maxHp
   xp_span.textContent = "" + player.xp
@@ -491,15 +498,27 @@ function getPlayerIcon(): HTMLImageElement {
   return unit.icons[player.lastMoveDirection][0]
 }
 
+function onIntroClosed(action: Intro.IntroCloseAction): void {
+  game_div.removeAttribute("hidden")
+  if (action === Intro.IntroCloseAction.LOAD) {
+    SaveManager.load()
+  }
+  updateStats()
+  updateMapView()
+}
+
 function afterLoad() {
+  loading_div.setAttribute("hidden", "")
+
+  Intro.initIntro(player)
+  Intro.registerCloseAction(onIntroClosed)
+
   player.position = new MapCoordinate(player_start_x, player_start_y)
 
   game_log_div.style.overflowY = "scroll"
   side_pane.appendChild(game_log_div)
 
   setupGameView()
-  updateStats()
-  updateMapView()
 
   document.addEventListener("keydown", action)
 }
