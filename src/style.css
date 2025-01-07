@@ -26,7 +26,7 @@ main {
   margin-right: auto;
   background-color: #000;
   color: #ccc;
-  width: calc(250px + 672px);
+  width: calc(250px + 672px + 20px);
   height: 480px;
 }
 
@@ -44,6 +44,18 @@ main {
   height: 100%;
 }
 
+#intro-character-form {
+  width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#intro-character-form > div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 #intro-page-2 input[type="number"] {
   width: 3em;
 }
@@ -51,6 +63,9 @@ main {
 #game {
   display: flex;
   position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  width: calc(250px + 672px + 20px);
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -78,13 +93,15 @@ main {
 
 #mini-map {
   position: absolute;
-  right: 50px;
-  width: 250px;
-  height: 150px;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 75px;
   overflow: hidden;
   border-style: inset;
   border-width: 5px;
   border-color: #000f;
+  z-index: 10;
 }
 
 #map-view {

@@ -19,9 +19,9 @@
           <button id="intro-load-game">Continue your quest</button>
         </div>
         <div id="intro-page-2" hidden>
-          <div>
+          <div id="intro-character-form">
             <div>
-              <label>Name:</label
+              <label for="intro-player-name">Name:</label
               ><input
                 id="intro-player-name"
                 type="text"
@@ -54,7 +54,7 @@
               <span id="intro-remaining-skill-points">0</span>
             </div>
             <div>
-              Strength:
+              <label for="intro-strength">Strength:</label>
               <input
                 type="number"
                 id="intro-strength"
@@ -66,7 +66,7 @@
               />
             </div>
             <div>
-              Agility:
+              <label for="intro-agility">Agility:</label>
               <input
                 type="number"
                 id="intro-agility"
@@ -78,7 +78,7 @@
               />
             </div>
             <div>
-              Intelligence:
+              <label for="intro-intelligence">Intelligence:</label>
               <input
                 type="number"
                 id="intro-intelligence"
@@ -90,7 +90,7 @@
               />
             </div>
             <div>
-              Luck:
+              <label for="intro-luck">Luck:</label>
               <input
                 type="number"
                 id="intro-luck"
@@ -120,7 +120,7 @@
           </div>
           <div id="game-log"></div>
         </div>
-        <canvas id="mini-map" width="250" height="150"></canvas>
+        <canvas id="mini-map" width="100" height="75"></canvas>
         <div id="map-view"></div>
       </div>
       <p>
