@@ -91,6 +91,10 @@ main {
   border-bottom: 5px solid #333;
 }
 
+#game-log {
+  overflow-y: scroll;
+}
+
 #mini-map {
   position: absolute;
   top: 0;
