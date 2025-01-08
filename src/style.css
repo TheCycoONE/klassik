@@ -100,7 +100,8 @@ main {
   top: 0;
   right: 0;
   width: 100px;
-  height: 75px;
+  height: 80px;
+  box-sizing: content-box;
   overflow: hidden;
   border-style: inset;
   border-width: 5px;
