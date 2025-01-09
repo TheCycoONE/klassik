@@ -62,6 +62,15 @@
         "South": { "prefix": "knight" },
         "West": { "prefix": "knight" }
       }
+    },
+    {
+      "name": "theif",
+      "icons": {
+        "North": { "prefix": "theif_west" },
+        "East": { "prefix": "theif_east" },
+        "South": { "prefix": "theif_east" },
+        "West": { "prefix": "theif_west" }
+      }
     }
   ]
 }
