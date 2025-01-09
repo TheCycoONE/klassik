@@ -74,6 +74,18 @@ main {
   border: 5px solid black;
 }
 
+div.game-grid-tile {
+  position: relative;
+  height: 48px;
+  width: 48px;
+}
+
+div.game-grid-tile > img {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 #side-pane {
   display: flex;
   flex-direction: column;
@@ -99,8 +111,6 @@ main {
   position: absolute;
   top: 0;
   right: 0;
-  width: 100px;
-  height: 80px;
   box-sizing: content-box;
   overflow: hidden;
   border-style: inset;

@@ -90,9 +90,7 @@ function setupGameView() {
     game_grid_tiles[y] = []
     for (let x = 0; x < game_grid_width; x++) {
       const elm = document.createElement("div")
-      elm.style.position = "relative"
-      elm.style.width = "48px"
-      elm.style.height = "48px"
+      elm.className = "game-grid-tile"
 
       game_grid_elements[y].push(elm)
       map_view.appendChild(elm)
@@ -211,14 +209,14 @@ function updateMapView() {
     if (icon) {
       game_grid_elements[entity.position.y - game_grid_top][
         entity.position.x - game_grid_left
-      ].replaceChildren(icon)
+      ].appendChild(icon)
     }
   }
 
   // Draw player
   game_grid_elements[player.position.y - game_grid_top][
     player.position.x - game_grid_left
-  ].replaceChildren(getPlayerIcon())
+  ].appendChild(getPlayerIcon())
 }
 
 function updateStats() {
