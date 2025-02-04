@@ -3,73 +3,73 @@
     {
       "name": "empty_horse",
       "icons": {
-        "North": { "prefix": "empty_horse_east" },
-        "East": { "prefix": "empty_horse_east" },
-        "South": { "prefix": "empty_horse_west" },
-        "West": { "prefix": "empty_horse_west" }
+        "north": { "prefix": "empty_horse_east" },
+        "east": { "prefix": "empty_horse_east" },
+        "south": { "prefix": "empty_horse_west" },
+        "west": { "prefix": "empty_horse_west" }
       }
     },
     {
       "name": "full_horse",
       "icons": {
-        "North": { "prefix": "full_horse_east" },
-        "East": { "prefix": "full_horse_east" },
-        "South": { "prefix": "full_horse_west" },
-        "West": { "prefix": "full_horse_west" }
+        "north": { "prefix": "full_horse_east" },
+        "east": { "prefix": "full_horse_east" },
+        "south": { "prefix": "full_horse_west" },
+        "west": { "prefix": "full_horse_west" }
       }
     },
     {
       "name": "empty_raft",
       "icons": {
-        "North": { "prefix": "empty_raft" },
-        "East": { "prefix": "empty_raft" },
-        "South": { "prefix": "empty_raft" },
-        "West": { "prefix": "empty_raft" }
+        "north": { "prefix": "empty_raft" },
+        "east": { "prefix": "empty_raft" },
+        "south": { "prefix": "empty_raft" },
+        "west": { "prefix": "empty_raft" }
       }
     },
     {
       "name": "full_raft",
       "icons": {
-        "North": { "prefix": "full_raft" },
-        "East": { "prefix": "full_raft" },
-        "South": { "prefix": "full_raft" },
-        "West": { "prefix": "full_raft" }
+        "north": { "prefix": "full_raft" },
+        "east": { "prefix": "full_raft" },
+        "south": { "prefix": "full_raft" },
+        "west": { "prefix": "full_raft" }
       }
     },
     {
       "name": "empty_ship",
       "icons": {
-        "North": { "prefix": "empty_ship_north" },
-        "East": { "prefix": "empty_ship_east" },
-        "South": { "prefix": "empty_ship_south" },
-        "West": { "prefix": "empty_ship_west" }
+        "north": { "prefix": "empty_ship_north" },
+        "east": { "prefix": "empty_ship_east" },
+        "south": { "prefix": "empty_ship_south" },
+        "west": { "prefix": "empty_ship_west" }
       }
     },
     {
       "name": "full_ship",
       "icons": {
-        "North": { "prefix": "full_ship_north" },
-        "East": { "prefix": "full_ship_east" },
-        "South": { "prefix": "full_ship_south" },
-        "West": { "prefix": "full_ship_west" }
+        "north": { "prefix": "full_ship_north" },
+        "east": { "prefix": "full_ship_east" },
+        "south": { "prefix": "full_ship_south" },
+        "west": { "prefix": "full_ship_west" }
       }
     },
     {
       "name": "knight",
       "icons": {
-        "North": { "prefix": "knight" },
-        "East": { "prefix": "knight" },
-        "South": { "prefix": "knight" },
-        "West": { "prefix": "knight" }
+        "north": { "prefix": "knight" },
+        "east": { "prefix": "knight" },
+        "south": { "prefix": "knight" },
+        "west": { "prefix": "knight" }
       }
     },
     {
       "name": "theif",
       "icons": {
-        "North": { "prefix": "theif_west" },
-        "East": { "prefix": "theif_east" },
-        "South": { "prefix": "theif_east" },
-        "West": { "prefix": "theif_west" }
+        "north": { "prefix": "theif_west" },
+        "east": { "prefix": "theif_east" },
+        "south": { "prefix": "theif_east" },
+        "west": { "prefix": "theif_west" }
       }
     }
   ]

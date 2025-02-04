@@ -2,7 +2,6 @@
 
 import {
   Direction,
-  VehicleType,
   Tile,
   TileProperties,
   Unit,
@@ -10,7 +9,6 @@ import {
   Player,
   Vehicle,
   MapOverlay,
-  EntityType,
 } from "./types"
 import { getElemByIdOrThrow } from "./util"
 import tile_defs from "./tiles.json" with { type: "json" }
@@ -87,7 +85,7 @@ async function loadUnit(unitDef: UnitDefinition) {
   // Read all direction icons asyncronously
   const icons = Object.fromEntries(
     await Promise.all(
-      Object.values(Direction).map(async (direction) => [
+      (["north", "east", "south", "west"] as const).map(async (direction) => [
         // entry key (Direction)
         direction,
 
@@ -140,7 +138,7 @@ function onIntroClosed(action: Intro.IntroCloseAction): void {
     throw new Error("mapOverlay should be loaded")
   }
 
-  if (action === Intro.IntroCloseAction.LOAD) {
+  if (action === "load") {
     SaveManager.load()
   }
 
@@ -165,25 +163,25 @@ Promise.all([
     src: "maps/world.png",
     entities: [
       {
-        type: EntityType.Vehicle,
+        type: "vehicle",
         id: "ship_1",
         position: new MapCoordinate(214, 150),
-        direction: Direction.West,
-        vehicleType: VehicleType.Ship,
+        direction: "west",
+        vehicleType: "ship",
       },
       {
-        type: EntityType.Vehicle,
+        type: "vehicle",
         id: "horse_1",
         position: new MapCoordinate(194, 154),
-        direction: Direction.East,
-        vehicleType: VehicleType.Horse,
+        direction: "east",
+        vehicleType: "horse",
       },
       {
-        type: EntityType.Vehicle,
+        type: "vehicle",
         id: "raft_1",
         position: new MapCoordinate(130, 275),
-        direction: Direction.North,
-        vehicleType: VehicleType.Raft,
+        direction: "north",
+        vehicleType: "raft",
       },
     ],
   }),

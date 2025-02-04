@@ -1,10 +1,7 @@
 import { getElemByIdOrThrow } from "./util"
-import { Player, Sex } from "./types"
+import { Player } from "./types"
 
-export enum IntroCloseAction {
-  LOAD,
-  NEW_GAME,
-}
+export type IntroCloseAction = "load" | "new_game"
 
 const pg1 = getElemByIdOrThrow("intro-page-1", HTMLDivElement)
 const pg2 = getElemByIdOrThrow("intro-page-2", HTMLDivElement)
@@ -84,16 +81,16 @@ new_btn.addEventListener("click", () => {
 
 load_btn.addEventListener("click", () => {
   intro.setAttribute("hidden", "")
-  notify_list.forEach((f) => f(IntroCloseAction.LOAD))
+  notify_list.forEach((f) => f("load"))
 })
 
 start_game_btn.addEventListener("click", () => {
   intro.setAttribute("hidden", "")
   _player.name = name_input.value
-  _player.sex = sex_input_male.checked ? Sex.MALE : Sex.FEMALE
+  _player.sex = sex_input_male.checked ? "male" : "female"
   _player.strength = parseInt(str_input.value)
   _player.agility = parseInt(agi_input.value)
   _player.intelligence = parseInt(int_input.value)
   _player.luck = parseInt(lck_input.value)
-  notify_list.forEach((f) => f(IntroCloseAction.NEW_GAME))
+  notify_list.forEach((f) => f("new_game"))
 })

@@ -1,18 +1,8 @@
 /** @format */
 
-export enum VehicleType {
-  None = "none",
-  Raft = "raft",
-  Ship = "ship",
-  Horse = "horse",
-}
+export type VehicleType = "none" | "raft" | "ship" | "horse"
 
-export enum Direction {
-  North = "North",
-  South = "South",
-  East = "East",
-  West = "West",
-}
+export type Direction = "north" | "south" | "east" | "west"
 
 export interface TileProperties {
   passible_on_foot?: boolean
@@ -34,12 +24,10 @@ export interface Unit {
   }
 }
 
-export enum EntityType {
-  Vehicle,
-}
+export type EntityType = "vehicle"
 
 export interface Vehicle extends MapEntity {
-  type: EntityType.Vehicle
+  type: "vehicle"
   vehicleType: VehicleType
 }
 
@@ -72,10 +60,7 @@ export class MapCoordinate {
   }
 }
 
-export enum Sex {
-  MALE = "m",
-  FEMALE = "f",
-}
+export type Sex = "male" | "female"
 
 export class Player implements Persistable {
   static readonly LVL_TABLE = [
@@ -94,11 +79,11 @@ export class Player implements Persistable {
 
   readonly saveId = "player"
   position: MapCoordinate = new MapCoordinate(0, 0)
-  vehicle: VehicleType = VehicleType.None
-  lastMoveDirection: Direction = Direction.South
+  vehicle: VehicleType = "none"
+  lastMoveDirection: Direction = "south"
 
   name: string = "Player"
-  sex: Sex = Sex.MALE
+  sex: Sex = "male"
 
   // stats
   hp: number = 100

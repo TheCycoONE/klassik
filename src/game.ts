@@ -1,7 +1,6 @@
 import { getElemByIdOrThrow, throwExpr } from "./util"
 import {
   Direction,
-  EntityType,
   MapCoordinate,
   Player,
   Unit,
@@ -201,7 +200,7 @@ function updateMapView() {
     gridBottomRight,
   ) ?? []) {
     let icon
-    if (entity.type === EntityType.Vehicle) {
+    if (entity.type === "vehicle") {
       icon = getVehicleUnit((entity as Vehicle).vehicleType, false)?.icons[
         entity.direction
       ][0]
@@ -245,28 +244,28 @@ function canPass(mapCoord: MapCoordinate, withVehicle: VehicleType) {
   const props =
     game_grid_tiles[mapCoord.y - game_grid_top][mapCoord.x - game_grid_left]
       .properties
-  if (withVehicle === VehicleType.None) {
+  if (withVehicle === "none") {
     if (props.passible_on_foot) {
       return true
     }
-    if (mapOverlay?.entityAt(mapCoord)?.type === EntityType.Vehicle) {
+    if (mapOverlay?.entityAt(mapCoord)?.type === "vehicle") {
       return true
     }
     return false
-  } else if (withVehicle === VehicleType.Horse) {
+  } else if (withVehicle === "horse") {
     return props.passible_on_horse
-  } else if (withVehicle === VehicleType.Raft) {
+  } else if (withVehicle === "raft") {
     return props.passible_on_raft
-  } else if (withVehicle === VehicleType.Ship) {
+  } else if (withVehicle === "ship") {
     return props.passible_on_ship
   }
   return true
 }
 
 function board() {
-  if (player.vehicle === VehicleType.None) {
+  if (player.vehicle === "none") {
     const entity = mapOverlay?.entityAt(player.position)
-    if (!entity || entity.type !== EntityType.Vehicle) {
+    if (!entity || entity.type !== "vehicle") {
       appendActionToLog("Board: Nothing here")
       return
     }
@@ -277,13 +276,13 @@ function board() {
   } else {
     const ve: Vehicle = {
       id: player.vehicle + "_" + window.crypto.randomUUID(),
-      type: EntityType.Vehicle,
+      type: "vehicle",
       position: player.position.clone(),
       direction: player.lastMoveDirection,
       vehicleType: player.vehicle,
     }
     mapOverlay?.entities.push(ve)
-    player.vehicle = VehicleType.None
+    player.vehicle = "none"
 
     appendActionToLog("Unboard")
   }
@@ -293,16 +292,16 @@ function move(dir: Direction) {
   const newPosition = player.position.clone()
 
   switch (dir) {
-    case Direction.North:
+    case "north":
       newPosition.y--
       break
-    case Direction.South:
+    case "south":
       newPosition.y++
       break
-    case Direction.West:
+    case "west":
       newPosition.x--
       break
-    case Direction.East:
+    case "east":
       newPosition.x++
       break
   }
@@ -325,16 +324,16 @@ function action(evt: KeyboardEvent) {
 
   switch (evt.key) {
     case "ArrowDown":
-      move(Direction.South)
+      move("south")
       break
     case "ArrowUp":
-      move(Direction.North)
+      move("north")
       break
     case "ArrowLeft":
-      move(Direction.West)
+      move("west")
       break
     case "ArrowRight":
-      move(Direction.East)
+      move("east")
       break
     case "b":
       board()
@@ -366,13 +365,13 @@ function getVehicleUnitName(
   inUse: boolean,
 ): string | undefined {
   switch (vehicle) {
-    case VehicleType.None:
+    case "none":
       return "knight"
-    case VehicleType.Raft:
+    case "raft":
       return inUse ? "full_raft" : "empty_raft"
-    case VehicleType.Ship:
+    case "ship":
       return inUse ? "full_ship" : "empty_ship"
-    case VehicleType.Horse:
+    case "horse":
       return inUse ? "full_horse" : "empty_horse"
   }
 }
