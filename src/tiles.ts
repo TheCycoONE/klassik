@@ -1,20 +1,33 @@
+import type { TileProperties } from "./types"
+
+export interface TileDefinition {
+  index: string
+  name: string
+  default?: boolean
+  properties: TileProperties
+}
+
+interface TileDefinitions {
+  tiles: TileDefinition[]
+}
+
 export default {
-  "tiles": [
+  tiles: [
     {
-      "index": "0000ff",
-      "default": true,
-      "name": "deep_water",
-      "properties": { "passible_on_ship": true }
+      name: "deep_water",
+      index: "0000ff",
+      default: true,
+      properties: { passible_on_ship: true },
     },
     {
-      "index": "00ff00",
-      "name": "grass",
-      "properties": { "passible_on_foot": true, "passible_on_horse": true }
+      name: "grass",
+      index: "00ff00",
+      properties: { passible_on_foot: true, passible_on_horse: true },
     },
     {
-      "index": "00ffff",
-      "name": "shallow_water",
-      "properties": { "passible_on_raft": true }
-    }
-  ]
-} as const
+      name: "shallow_water",
+      index: "00ffff",
+      properties: { passible_on_raft: true },
+    },
+  ],
+} as const satisfies TileDefinitions

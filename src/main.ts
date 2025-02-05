@@ -1,43 +1,17 @@
 /** @format */
 
-import {
-  Direction,
-  Tile,
-  TileProperties,
-  Unit,
-  MapCoordinate,
-  Player,
-  Vehicle,
-  MapOverlay,
-} from "./types"
+import { Tile, Unit, MapCoordinate, Player, Vehicle, MapOverlay } from "./types"
 import { getElemByIdOrThrow } from "./util"
-import TileDefs from "./tiles"
-import UnitDefs from "./units"
+import TileDefs, { TileDefinition } from "./tiles"
+import UnitDefs, { UnitDefinition, UnitName } from "./units"
 import * as SaveManager from "./save-manager"
 import * as Intro from "./intro"
 import * as Game from "./game"
-
-interface UnitDefinition {
-  name: string
-  icons: {
-    [key in Direction]: {
-      prefix: string
-      frames?: number
-    }
-  }
-}
 
 interface MapDefinition {
   name: string
   src: string
   entities: Vehicle[]
-}
-
-interface TileDefinition {
-  index: string
-  name: string
-  default?: boolean
-  properties: TileProperties
 }
 
 const player_start_x = 200
@@ -47,7 +21,7 @@ const loading_div = getElemByIdOrThrow("loading", HTMLDivElement)
 
 // Tiles
 const tiles: Map<string, Tile> = new Map()
-const units: Map<string, Unit> = new Map()
+const units: Map<UnitName, Unit> = new Map()
 
 let mapBitmap: HTMLImageElement
 let mapOverlay: MapOverlay | undefined
@@ -100,11 +74,10 @@ async function loadUnit(unitDef: UnitDefinition) {
   )
 
   const unit: Unit = {
-    name: unitDef.name,
     icons,
   }
 
-  units.set(unit.name, unit)
+  units.set(unitDef.name, unit)
 }
 
 async function loadMap(mapDef: MapDefinition) {

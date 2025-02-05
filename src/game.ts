@@ -9,6 +9,7 @@ import {
   VehicleType,
   MapOverlay,
 } from "./types"
+import type { UnitName } from "./units"
 import * as SaveManager from "./save-manager"
 
 class GameGridCoordinate {
@@ -58,14 +59,14 @@ let mapOverlay: MapOverlay | undefined
 let player: Player
 let debug = false
 let tiles: Map<string, Tile>
-let units: Map<string, Unit>
+let units: Map<UnitName, Unit>
 
 export interface GameInitParams {
   player: Player
   mapBitmap: HTMLImageElement
   mapOverlay: MapOverlay
   tiles: Map<string, Tile>
-  units: Map<string, Unit>
+  units: Map<UnitName, Unit>
 }
 
 export function initGame(params: GameInitParams) {
@@ -363,7 +364,7 @@ function action(evt: KeyboardEvent) {
 function getVehicleUnitName(
   vehicle: VehicleType,
   inUse: boolean,
-): string | undefined {
+): UnitName | undefined {
   switch (vehicle) {
     case "none":
       return "knight"

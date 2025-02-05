@@ -18,7 +18,6 @@ export interface Tile {
 }
 
 export interface Unit {
-  name: string
   icons: {
     [key in Direction]: HTMLImageElement[]
   }
