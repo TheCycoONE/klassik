@@ -1,4 +1,4 @@
-{
+export default {
   "units": [
     {
       "name": "empty_horse",
@@ -73,4 +73,4 @@
       }
     }
   ]
-}
+} as const

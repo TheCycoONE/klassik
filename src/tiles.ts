@@ -1,4 +1,4 @@
-{
+export default {
   "tiles": [
     {
       "index": "0000ff",
@@ -17,4 +17,4 @@
       "properties": { "passible_on_raft": true }
     }
   ]
-}
+} as const

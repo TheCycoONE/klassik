@@ -11,8 +11,8 @@ import {
   MapOverlay,
 } from "./types"
 import { getElemByIdOrThrow } from "./util"
-import tile_defs from "./tiles.json" with { type: "json" }
-import unit_defs from "./units.json" with { type: "json" }
+import TileDefs from "./tiles"
+import UnitDefs from "./units"
 import * as SaveManager from "./save-manager"
 import * as Intro from "./intro"
 import * as Game from "./game"
@@ -117,7 +117,7 @@ async function loadMap(mapDef: MapDefinition) {
 
 async function loadTiles() {
   const loadTilePromises = []
-  for (const tileDef of tile_defs.tiles) {
+  for (const tileDef of TileDefs.tiles) {
     loadTilePromises.push(loadTile(tileDef))
   }
 
@@ -126,7 +126,7 @@ async function loadTiles() {
 
 async function loadUnits() {
   const loadUnitPromises = []
-  for (const unitDef of unit_defs.units) {
+  for (const unitDef of UnitDefs.units) {
     loadUnitPromises.push(loadUnit(unitDef))
   }
 
