@@ -339,6 +339,14 @@ async function move(dir: Direction) {
 async function handleAttack(dir: Direction, targetPos: MapCoordinate) {
   const entity = mapOverlay?.entityAt(targetPos)
   if (entity?.type === "monster") {
+    // Flash the monster's tile
+    const gridX = entity.position.x - game_grid_left
+    const gridY = entity.position.y - game_grid_top
+    const tileElem = game_grid_elements[gridY]?.[gridX]
+    if (tileElem) {
+      tileElem.classList.add("attack-effect")
+      setTimeout(() => tileElem.classList.remove("attack-effect"), 120)
+    }
     await playAttackSound()
     const monster = entity as Monster
     player.attack(monster)

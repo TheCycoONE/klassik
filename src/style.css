@@ -137,3 +137,31 @@ div.game-grid-tile > img {
   border-style: solid;
   border-width: 1px;
 }
+
+.attack-effect {
+  position: relative;
+}
+
+.attack-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 50%;
+  animation: attack-effect-anim 0.12s linear;
+  z-index: 2;
+  background: radial-gradient(circle, #eee 0%, #a11 60%, #400 100%);
+  opacity: 0.8;
+}
+
+@keyframes attack-effect-anim {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
