@@ -10,6 +10,7 @@ import {
 import { Vehicle } from "./vehicles"
 import type { UnitName } from "./units"
 import * as SaveManager from "./save-manager"
+import { playAttackSound, playWalkSound, playGallopSound } from "./sounds"
 import { Monster } from "./monsters"
 import { MapOverlay } from "./map-overlay"
 
@@ -301,7 +302,7 @@ function board() {
   }
 }
 
-function move(dir: Direction) {
+async function move(dir: Direction) {
   const newPosition = player.position.clone()
 
   switch (dir) {
@@ -321,6 +322,11 @@ function move(dir: Direction) {
 
   // TODO: Check passible
   if (canPass(newPosition, player.vehicle)) {
+    if (player.vehicle === "none") {
+      await playWalkSound()
+    } else if (player.vehicle === "horse") {
+      await playGallopSound()
+    }
     appendActionToLog(`Move ${dir}: OK`)
 
     player.position = newPosition
@@ -330,9 +336,10 @@ function move(dir: Direction) {
   }
 }
 
-function handleAttack(dir: Direction, targetPos: MapCoordinate) {
+async function handleAttack(dir: Direction, targetPos: MapCoordinate) {
   const entity = mapOverlay?.entityAt(targetPos)
   if (entity?.type === "monster") {
+    await playAttackSound()
     const monster = entity as Monster
     player.attack(monster)
     // Mark monster as destroyed if its hp is 0 or less
@@ -349,7 +356,7 @@ function handleAttack(dir: Direction, targetPos: MapCoordinate) {
   }
 }
 
-function action(evt: KeyboardEvent) {
+async function action(evt: KeyboardEvent) {
   if (evt.defaultPrevented) {
     return
   }
@@ -379,7 +386,7 @@ function action(evt: KeyboardEvent) {
         appendActionToLog("Attack cancelled.")
         return
     }
-    handleAttack(dir, targetPos)
+    await handleAttack(dir, targetPos)
     attackMode = false
     updateMapView()
     return
@@ -390,16 +397,16 @@ function action(evt: KeyboardEvent) {
       attackMode = true
       break
     case "ArrowDown":
-      move("south")
+      await move("south")
       break
     case "ArrowUp":
-      move("north")
+      await move("north")
       break
     case "ArrowLeft":
-      move("west")
+      await move("west")
       break
     case "ArrowRight":
-      move("east")
+      await move("east")
       break
     case "b":
       board()
