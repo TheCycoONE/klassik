@@ -8,7 +8,7 @@ export type UnitName =
   | "empty_ship"
   | "full_ship"
   | "knight"
-  | "theif"
+  | "thief"
 
 export interface UnitDefinition {
   name: UnitName
@@ -90,12 +90,12 @@ export default {
       },
     },
     {
-      name: "theif",
+      name: "thief",
       icons: {
-        north: { prefix: "theif_west" },
-        east: { prefix: "theif_east" },
-        south: { prefix: "theif_east" },
-        west: { prefix: "theif_west" },
+        north: { prefix: "thief_west" },
+        east: { prefix: "thief_east" },
+        south: { prefix: "thief_east" },
+        west: { prefix: "thief_west" },
       },
     },
   ],

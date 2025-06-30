@@ -23,12 +23,7 @@ export interface Unit {
   }
 }
 
-export type EntityType = "vehicle"
-
-export interface Vehicle extends MapEntity {
-  type: "vehicle"
-  vehicleType: VehicleType
-}
+export type EntityType = "vehicle" | "monster"
 
 export interface MapEntity {
   id: string
@@ -64,7 +59,7 @@ export class MapCoordinate {
 
 export type Sex = "male" | "female"
 
-export class Player implements Persistable {
+export class Player implements Persistable, CombatParticipant {
   static readonly LVL_TABLE = [
     { xp: 0, maxHp: 100 },
     { xp: 100, maxHp: 110 },
@@ -130,46 +125,22 @@ export class Player implements Persistable {
     this.intelligence = obj.intelligence
     this.luck = obj.luck
   }
+
+  attack(target: CombatParticipant): void {
+    target.defend(this.strength)
+  }
+
+  defend(damage: number): void {
+    this.hp -= damage
+    if (this.hp < 0) this.hp = 0
+  }
 }
 
-export class MapOverlay implements Persistable {
-  readonly saveId: string
-  entities: MapEntity[]
+export interface CombatParticipant {
+  attack(target: CombatParticipant): void
+  defend(damage: number): void
+}
 
-  constructor(mapName: string, entities: MapEntity[]) {
-    this.saveId = mapName + "-mapOverlay"
-    this.entities = entities
-  }
-
-  entityAt(mapCoord: MapCoordinate): MapEntity | undefined {
-    for (const entity of this.entities) {
-      if (mapCoord.equals(entity.position) && !entity.destroyed) {
-        return entity
-      }
-    }
-    return undefined
-  }
-
-  entitiesInRect(
-    topLeft: MapCoordinate,
-    bottomRight: MapCoordinate,
-  ): MapEntity[] {
-    return this.entities.filter(
-      (e) =>
-        !e.destroyed &&
-        e.position.x >= topLeft.x &&
-        e.position.y >= topLeft.y &&
-        e.position.x <= bottomRight.x &&
-        e.position.y <= bottomRight.y,
-    )
-  }
-
-  serialize(): string {
-    return JSON.stringify(this)
-  }
-
-  deserialize(input: string): void {
-    const obj = JSON.parse(input)
-    this.entities = obj.entities
-  }
+export type DeserializedMapEntity = Omit<MapEntity, "position"> & {
+  position: { x: number; y: number }
 }

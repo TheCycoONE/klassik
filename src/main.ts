@@ -1,17 +1,20 @@
 /** @format */
 
-import { Tile, Unit, MapCoordinate, Player, Vehicle, MapOverlay } from "./types"
+import { Tile, Unit, MapCoordinate, Player, MapEntity } from "./types"
+import { MapOverlay } from "./map-overlay"
 import { getElemByIdOrThrow } from "./util"
 import TileDefs, { TileDefinition } from "./tiles"
 import UnitDefs, { UnitDefinition, UnitName } from "./units"
 import * as SaveManager from "./save-manager"
 import * as Intro from "./intro"
 import * as Game from "./game"
+import { createThiefMonster } from "./monsters"
+import { createVehicle } from "./vehicles"
 
 interface MapDefinition {
   name: string
   src: string
-  entities: Vehicle[]
+  entities: MapEntity[]
 }
 
 const player_start_x = 200
@@ -135,27 +138,14 @@ Promise.all([
     name: "world",
     src: "maps/world.png",
     entities: [
-      {
-        type: "vehicle",
-        id: "ship_1",
-        position: new MapCoordinate(214, 150),
-        direction: "west",
-        vehicleType: "ship",
-      },
-      {
-        type: "vehicle",
-        id: "horse_1",
-        position: new MapCoordinate(194, 154),
-        direction: "east",
-        vehicleType: "horse",
-      },
-      {
-        type: "vehicle",
-        id: "raft_1",
-        position: new MapCoordinate(130, 275),
-        direction: "north",
-        vehicleType: "raft",
-      },
+      createVehicle("ship_1", "ship", new MapCoordinate(214, 150), "west"),
+      createVehicle("horse_1", "horse", new MapCoordinate(194, 154), "east"),
+      createVehicle("raft_1", "raft", new MapCoordinate(130, 275), "north"),
+      createThiefMonster(
+        "thief_1",
+        new MapCoordinate(196, 154), // near the horse
+        "west",
+      ),
     ],
   }),
 ]).then(afterLoad)

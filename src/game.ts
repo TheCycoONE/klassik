@@ -5,12 +5,13 @@ import {
   Player,
   Unit,
   Tile,
-  Vehicle,
   VehicleType,
-  MapOverlay,
 } from "./types"
+import { Vehicle } from "./vehicles"
 import type { UnitName } from "./units"
 import * as SaveManager from "./save-manager"
+import { Monster } from "./monsters"
+import { MapOverlay } from "./map-overlay"
 
 class GameGridCoordinate {
   x: number
@@ -60,6 +61,7 @@ let player: Player
 let debug = false
 let tiles: Map<string, Tile>
 let units: Map<UnitName, Unit>
+let attackMode = false
 
 export interface GameInitParams {
   player: Player
@@ -205,6 +207,12 @@ function updateMapView() {
       icon = getVehicleUnit((entity as Vehicle).vehicleType, false)?.icons[
         entity.direction
       ][0]
+    } else if (entity.type === "monster") {
+      const monster = entity as Monster
+      const unit = units.get(monster.monsterType)
+      if (unit) {
+        icon = unit.icons[monster.direction][0]
+      }
     }
     if (icon) {
       game_grid_elements[entity.position.y - game_grid_top][
@@ -245,11 +253,15 @@ function canPass(mapCoord: MapCoordinate, withVehicle: VehicleType) {
   const props =
     game_grid_tiles[mapCoord.y - game_grid_top][mapCoord.x - game_grid_left]
       .properties
+  const entity = mapOverlay?.entityAt(mapCoord)
+  if (entity?.type === "monster") {
+    return false
+  }
   if (withVehicle === "none") {
     if (props.passible_on_foot) {
       return true
     }
-    if (mapOverlay?.entityAt(mapCoord)?.type === "vehicle") {
+    if (entity?.type === "vehicle") {
       return true
     }
     return false
@@ -318,12 +330,65 @@ function move(dir: Direction) {
   }
 }
 
+function handleAttack(dir: Direction, targetPos: MapCoordinate) {
+  const entity = mapOverlay?.entityAt(targetPos)
+  if (entity?.type === "monster") {
+    const monster = entity as Monster
+    player.attack(monster)
+    // Mark monster as destroyed if its hp is 0 or less
+    if (monster.hp <= 0) {
+      monster.destroyed = true
+      appendActionToLog(`Attack ${dir}: Monster defeated!`)
+    } else {
+      appendActionToLog(
+        `Attack ${dir}: Monster HP: ${monster.hp}/${monster.maxHp}`,
+      )
+    }
+  } else {
+    appendActionToLog(`Attack ${dir}: Nothing there.`)
+  }
+}
+
 function action(evt: KeyboardEvent) {
   if (evt.defaultPrevented) {
     return
   }
 
+  if (attackMode) {
+    let dir: Direction | undefined
+    const targetPos = player.position.clone()
+    switch (evt.key) {
+      case "ArrowDown":
+        dir = "south"
+        targetPos.y++
+        break
+      case "ArrowUp":
+        dir = "north"
+        targetPos.y--
+        break
+      case "ArrowLeft":
+        dir = "west"
+        targetPos.x--
+        break
+      case "ArrowRight":
+        dir = "east"
+        targetPos.x++
+        break
+      default:
+        attackMode = false
+        appendActionToLog("Attack cancelled.")
+        return
+    }
+    handleAttack(dir, targetPos)
+    attackMode = false
+    updateMapView()
+    return
+  }
+
   switch (evt.key) {
+    case "a":
+      attackMode = true
+      break
     case "ArrowDown":
       move("south")
       break
