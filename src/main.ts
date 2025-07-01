@@ -145,6 +145,7 @@ Promise.all([
         "thief_1",
         new MapCoordinate(196, 154), // near the horse
         "west",
+        true,
       ),
     ],
   }),

@@ -63,6 +63,7 @@ let debug = false
 let tiles: Map<string, Tile>
 let units: Map<UnitName, Unit>
 let attackMode = false
+let monsterActionPhase = false
 
 export interface GameInitParams {
   player: Player
@@ -250,6 +251,13 @@ function appendActionToLog(line: string) {
   game_log_div.scrollTop = game_log_div.scrollHeight
 }
 
+function appendToLastAction(line: string) {
+  const lastLine = game_log_div.lastElementChild
+  if (lastLine) {
+    lastLine.textContent += " " + line
+  }
+}
+
 function canPass(mapCoord: MapCoordinate, withVehicle: VehicleType) {
   const props =
     game_grid_tiles[mapCoord.y - game_grid_top][mapCoord.x - game_grid_left]
@@ -320,7 +328,6 @@ async function move(dir: Direction) {
       break
   }
 
-  // TODO: Check passible
   if (canPass(newPosition, player.vehicle)) {
     if (player.vehicle === "none") {
       await playWalkSound()
@@ -336,38 +343,68 @@ async function move(dir: Direction) {
   }
 }
 
+async function attackEffect(targetPos: MapCoordinate) {
+  await playAttackSound()
+  const gridX = targetPos.x - game_grid_left
+  const gridY = targetPos.y - game_grid_top
+  const tileElem = game_grid_elements[gridY]?.[gridX]
+  if (tileElem) {
+    tileElem.classList.add("attack-effect")
+    setTimeout(() => tileElem.classList.remove("attack-effect"), 120)
+  }
+}
+
 async function handleAttack(dir: Direction, targetPos: MapCoordinate) {
   const entity = mapOverlay?.entityAt(targetPos)
   if (entity?.type === "monster") {
-    // Flash the monster's tile
-    const gridX = entity.position.x - game_grid_left
-    const gridY = entity.position.y - game_grid_top
-    const tileElem = game_grid_elements[gridY]?.[gridX]
-    if (tileElem) {
-      tileElem.classList.add("attack-effect")
-      setTimeout(() => tileElem.classList.remove("attack-effect"), 120)
-    }
-    await playAttackSound()
+    await attackEffect(entity.position)
     const monster = entity as Monster
     player.attack(monster)
     // Mark monster as destroyed if its hp is 0 or less
     if (monster.hp <= 0) {
       monster.destroyed = true
-      appendActionToLog(`Attack ${dir}: Monster defeated!`)
+      appendToLastAction(`${dir}: Monster defeated!`)
     } else {
-      appendActionToLog(
-        `Attack ${dir}: Monster HP: ${monster.hp}/${monster.maxHp}`,
-      )
+      appendToLastAction(`${dir}: Monster HP: ${monster.hp}/${monster.maxHp}`)
     }
   } else {
-    appendActionToLog(`Attack ${dir}: Nothing there.`)
+    appendToLastAction(`${dir}: Nothing there.`)
   }
+}
+
+async function monsterAction() {
+  if (!mapOverlay) return
+  monsterActionPhase = true
+  const adjacent = [
+    new MapCoordinate(player.position.x, player.position.y - 1), // north
+    new MapCoordinate(player.position.x, player.position.y + 1), // south
+    new MapCoordinate(player.position.x - 1, player.position.y), // west
+    new MapCoordinate(player.position.x + 1, player.position.y), // east
+  ]
+  for (const pos of adjacent) {
+    const entity = mapOverlay.entityAt(pos)
+    if (entity && entity.type === "monster" && !entity.destroyed) {
+      // Delay monster's attack so they happen one at a time
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      const monster = entity as Monster
+      monster.attack(player)
+      appendActionToLog(`The ${monster.monsterType} attacks you!`)
+      await attackEffect(player.position)
+    }
+  }
+  monsterActionPhase = false
 }
 
 async function action(evt: KeyboardEvent) {
   if (evt.defaultPrevented) {
     return
   }
+  if (monsterActionPhase) {
+    evt.preventDefault()
+    return
+  }
+
+  let playerTurnEnded = false
 
   if (attackMode) {
     let dir: Direction | undefined
@@ -391,54 +428,66 @@ async function action(evt: KeyboardEvent) {
         break
       default:
         attackMode = false
-        appendActionToLog("Attack cancelled.")
+        appendToLastAction("cancelled.")
         return
     }
     await handleAttack(dir, targetPos)
     attackMode = false
-    updateMapView()
-    return
+    playerTurnEnded = true
+  } else {
+    switch (evt.key) {
+      case "a":
+        appendActionToLog("Attack")
+        attackMode = true
+        break
+      case "ArrowDown":
+        playerTurnEnded = true
+        await move("south")
+        break
+      case "ArrowUp":
+        playerTurnEnded = true
+        await move("north")
+        break
+      case "ArrowLeft":
+        playerTurnEnded = true
+        await move("west")
+        break
+      case "ArrowRight":
+        playerTurnEnded = true
+        await move("east")
+        break
+      case "b":
+        playerTurnEnded = true
+        board()
+        break
+      case " ":
+        playerTurnEnded = true
+        appendActionToLog("Wait")
+        break
+      case "\\":
+        debug = !debug
+        break
+      case "s":
+        SaveManager.save()
+        appendActionToLog("Game Saved")
+        break
+      case "l":
+        if (SaveManager.load()) {
+          updateStats()
+          appendActionToLog("Loaded")
+        } else {
+          appendActionToLog("No save data available")
+        }
+        break
+      default:
+        console.log(`Unmapped key: ${evt.key}`)
+    }
   }
-
-  switch (evt.key) {
-    case "a":
-      attackMode = true
-      break
-    case "ArrowDown":
-      await move("south")
-      break
-    case "ArrowUp":
-      await move("north")
-      break
-    case "ArrowLeft":
-      await move("west")
-      break
-    case "ArrowRight":
-      await move("east")
-      break
-    case "b":
-      board()
-      break
-    case "\\":
-      debug = !debug
-      break
-    case "s":
-      SaveManager.save()
-      appendActionToLog("Game Saved")
-      break
-    case "l":
-      if (SaveManager.load()) {
-        updateStats()
-        appendActionToLog("Loaded")
-      } else {
-        appendActionToLog("No save data available")
-      }
-      break
-    default:
-      console.log(`Unmapped key: ${evt.key}`)
-  }
-
   updateMapView()
+  if (playerTurnEnded) {
+    await monsterAction()
+    updateStats()
+  }
 }
 
 function getVehicleUnitName(

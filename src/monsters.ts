@@ -8,12 +8,18 @@ import {
 
 export type MonsterType = "thief"
 
+/**
+ * Represents a monster or enemy in the game.
+ */
 export interface Monster extends MapEntity, CombatParticipant {
   monsterType: MonsterType
   hp: number
   maxHp: number
   strength: number
   agility: number
+
+  /// If true the monster will not move
+  sentinel: boolean
 }
 
 export type DeserializedMonster = DeserializedMapEntity & {
@@ -22,18 +28,21 @@ export type DeserializedMonster = DeserializedMapEntity & {
   maxHp: number
   strength: number
   agility: number
+  sentinel: boolean
 }
 
 export function createThiefMonster(
   id: string,
   position: MapCoordinate,
   direction: Direction = "south",
+  sentinel: boolean,
 ): Monster {
   return {
     id,
     type: "monster",
     position,
     direction,
+    sentinel,
     monsterType: "thief",
     hp: 30,
     maxHp: 30,
@@ -56,6 +65,7 @@ export function hydrateMonster(e: DeserializedMonster): Monster {
       e.id,
       new MapCoordinate(e.position.x, e.position.y),
       e.direction,
+      e.sentinel,
     )
   } else {
     throw new Error(`Unknown monsterType: ${e.monsterType}`)
