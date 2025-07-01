@@ -50,6 +50,8 @@ const game_grid_height = map_view_height_px / tile_height
 let game_grid_left = 0
 let game_grid_top = 0
 
+let turn = 0;
+
 // DOM nodes making the game view window
 const game_grid_elements: HTMLElement[][] = []
 
@@ -260,8 +262,13 @@ function appendToLastAction(line: string) {
 
 function canPass(mapCoord: MapCoordinate, withVehicle: VehicleType) {
   const props =
-    game_grid_tiles[mapCoord.y - game_grid_top][mapCoord.x - game_grid_left]
-      .properties
+    game_grid_tiles[mapCoord.y - game_grid_top]?.[mapCoord.x - game_grid_left]
+      ?.properties
+  if (!props) {
+    // Tile is not found / out of bounds.
+    return false;
+  }
+
   const entity = mapOverlay?.entityAt(mapCoord)
   if (entity?.type === "monster") {
     return false
@@ -372,27 +379,112 @@ async function handleAttack(dir: Direction, targetPos: MapCoordinate) {
   }
 }
 
-async function monsterAction() {
+async function monstersAction() {
   if (!mapOverlay) return
   monsterActionPhase = true
-  const adjacent = [
-    new MapCoordinate(player.position.x, player.position.y - 1), // north
-    new MapCoordinate(player.position.x, player.position.y + 1), // south
-    new MapCoordinate(player.position.x - 1, player.position.y), // west
-    new MapCoordinate(player.position.x + 1, player.position.y), // east
-  ]
-  for (const pos of adjacent) {
-    const entity = mapOverlay.entityAt(pos)
-    if (entity && entity.type === "monster" && !entity.destroyed) {
-      // Delay monster's attack so they happen one at a time
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      const monster = entity as Monster
-      monster.attack(player)
-      appendActionToLog(`The ${monster.monsterType} attacks you!`)
-      await attackEffect(player.position)
-    }
+
+  const gridTopLeft = new MapCoordinate(game_grid_left, game_grid_top)
+  const gridBottomRight = new MapCoordinate(
+    game_grid_left + game_grid_width - 1,
+    game_grid_top + game_grid_height - 1,
+  )
+
+  const monsters = (
+    mapOverlay.entitiesInRect(gridTopLeft, gridBottomRight) as Monster[]
+  ).filter((e) => e.type === "monster" && !e.destroyed)
+  for (const monster of monsters) {
+    await monsterAction(monster as Monster)
   }
   monsterActionPhase = false
+}
+
+async function monsterAction(monster: Monster) {
+  if (!mapOverlay) return
+
+  const directions: Direction[] = ["north", "south", "east", "west"]
+  const deltas = {
+    north: { x: 0, y: -1 },
+    south: { x: 0, y: 1 },
+    west: { x: -1, y: 0 },
+    east: { x: 1, y: 0 },
+  }
+
+  let attack: boolean = false
+  let bestDir: Direction | undefined
+  if (monster.mood === "aggressive") {
+    // Move toward player
+    let minDist =
+      Math.abs(monster.position.x - player.position.x) +
+      Math.abs(monster.position.y - player.position.y)
+    for (const dir of directions) {
+      const dx = deltas[dir].x
+      const dy = deltas[dir].y
+      const newPos = new MapCoordinate(
+        monster.position.x + dx,
+        monster.position.y + dy,
+      )
+      // Only move if passable and not occupied
+      if (canPass(newPos, "none") && !mapOverlay.entityAt(newPos)) {
+        const dist =
+          Math.abs(newPos.x - player.position.x) +
+          Math.abs(newPos.y - player.position.y)
+        if (dist < minDist) {
+          minDist = dist
+          bestDir = dir
+        }
+      }
+    }
+    if (minDist === 0) {
+      attack = true
+    }
+  } else if (monster.mood === "frightened") {
+    let maxDist =
+      Math.abs(monster.position.x - player.position.x) +
+      Math.abs(monster.position.y - player.position.y)
+    for (const dir of directions) {
+      const dx = deltas[dir].x
+      const dy = deltas[dir].y
+      const newPos = new MapCoordinate(
+        monster.position.x + dx,
+        monster.position.y + dy,
+      )
+      if (canPass(newPos, "none") && !mapOverlay.entityAt(newPos)) {
+        const dist =
+          Math.abs(newPos.x - player.position.x) +
+          Math.abs(newPos.y - player.position.y)
+        if (dist > maxDist) {
+          maxDist = dist
+          bestDir = dir
+        }
+      }
+    }
+  } else if (monster.mood === "neutral") {
+    const shuffled = directions.slice().sort(() => Math.random() - 0.5)
+    for (const dir of shuffled) {
+      const dx = deltas[dir].x
+      const dy = deltas[dir].y
+      const newPos = new MapCoordinate(
+        monster.position.x + dx,
+        monster.position.y + dy,
+      )
+      if (canPass(newPos, "none") && !mapOverlay.entityAt(newPos)) {
+        bestDir = dir
+        break
+      }
+    }
+  }
+  if (attack) {
+    monster.attack(player)
+    appendActionToLog(`The ${monster.monsterType} attacks you!`)
+    await attackEffect(player.position)
+    await new Promise((resolve) => setTimeout(resolve, 500))
+  } else if (bestDir && !monster.sentinel) {
+    monster.position.x += deltas[bestDir].x
+    monster.position.y += deltas[bestDir].y
+    monster.direction = bestDir
+    updateMapView()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+  }
 }
 
 async function action(evt: KeyboardEvent) {
@@ -485,8 +577,9 @@ async function action(evt: KeyboardEvent) {
   }
   updateMapView()
   if (playerTurnEnded) {
-    await monsterAction()
+    await monstersAction()
     updateStats()
+    turn++;
   }
 }
 

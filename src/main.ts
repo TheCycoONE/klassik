@@ -143,9 +143,17 @@ Promise.all([
       createVehicle("raft_1", "raft", new MapCoordinate(130, 275), "north"),
       createThiefMonster(
         "thief_1",
-        new MapCoordinate(196, 154), // near the horse
+        new MapCoordinate(196, 154),
         "west",
         true,
+        "aggressive",
+      ),
+      createThiefMonster(
+        "thief_2",
+        new MapCoordinate(200, 154),
+        "west",
+        false,
+        "aggressive",
       ),
     ],
   }),
