@@ -2,6 +2,7 @@ import { getElemByIdOrThrow, throwExpr } from "./util"
 import {
   Direction,
   MapCoordinate,
+  Persistable,
   Player,
   Unit,
   Tile,
@@ -24,6 +25,38 @@ class GameGridCoordinate {
   }
 }
 
+class WorldInfo implements Persistable {
+  saveId: string
+  #turn: number
+
+  constructor() {
+    this.saveId = "worldInfo"
+    this.#turn = 0
+  }
+
+  get turn(): number {
+    return this.#turn
+  }
+
+  incrementTurn(): void {
+    this.#turn++
+  }
+
+  serialize(): string {
+    return JSON.stringify({
+      turn: this.#turn,
+    })
+  }
+
+  deserialize(input: string): void {
+    const obj = JSON.parse(input)
+    this.#turn = obj.turn
+  }
+}
+
+const worldInfo = new WorldInfo()
+SaveManager.registerPersitable(worldInfo)
+
 const tile_width = 48
 const tile_height = 48
 const map_view_width_px = 672
@@ -44,13 +77,13 @@ const agility_span = getElemByIdOrThrow("agility", HTMLSpanElement)
 const intelligence_span = getElemByIdOrThrow("intelligence", HTMLSpanElement)
 const luck_span = getElemByIdOrThrow("luck", HTMLSpanElement)
 
-const game_grid_width = map_view_width_px / tile_width
-const game_grid_height = map_view_height_px / tile_height
+const game_grid_overscan = 2
+const game_grid_width = map_view_width_px / tile_width + game_grid_overscan * 2
+const game_grid_height =
+  map_view_height_px / tile_height + game_grid_overscan * 2
 
 let game_grid_left = 0
 let game_grid_top = 0
-
-let turn = 0;
 
 // DOM nodes making the game view window
 const game_grid_elements: HTMLElement[][] = []
@@ -97,9 +130,15 @@ function setupGameView() {
     for (let x = 0; x < game_grid_width; x++) {
       const elm = document.createElement("div")
       elm.className = "game-grid-tile"
-
       game_grid_elements[y].push(elm)
-      map_view.appendChild(elm)
+      if (
+        x >= game_grid_overscan &&
+        y >= game_grid_overscan &&
+        x < game_grid_width - game_grid_overscan &&
+        y < game_grid_height - game_grid_overscan
+      ) {
+        map_view.appendChild(elm)
+      }
     }
   }
 }
@@ -266,7 +305,7 @@ function canPass(mapCoord: MapCoordinate, withVehicle: VehicleType) {
       ?.properties
   if (!props) {
     // Tile is not found / out of bounds.
-    return false;
+    return false
   }
 
   const entity = mapOverlay?.entityAt(mapCoord)
@@ -579,7 +618,7 @@ async function action(evt: KeyboardEvent) {
   if (playerTurnEnded) {
     await monstersAction()
     updateStats()
-    turn++;
+    worldInfo.incrementTurn()
   }
 }
 
